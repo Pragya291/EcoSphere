@@ -338,3 +338,107 @@ def get_coach_response(chat_history, user_message):
         "Sustainable design is about continuous refinement. You can scan objects using our Waste Scanner to evaluate their direct composition and earn Eco Coins to plant real-world trees."
     ]
     return random.choice(general_responses)
+
+def analyze_receipt(image_bytes=None, filename=""):
+    """
+    Analyzes grocery receipt or shopping list using Vision APIs.
+    Returns itemized carbon footprints, alternatives, and carbon grades.
+    If key is missing, returns simulated receipt metrics.
+    """
+    if client and image_bytes:
+        try:
+            base64_image = base64.b64encode(image_bytes).decode('utf-8')
+            
+            prompt = """
+            You are a Carbon Detective and Green Receipt Analyzer. Analyze this grocery receipt or list of shopping items.
+            Estimate the carbon footprint (in kg of CO2) for each product item detected.
+            Respond ONLY with a valid JSON object matching this schema:
+            {
+                "items": [
+                    {"name": "Item name (e.g. Grass-fed Beef 500g)", "category": "Meat/Vegetables/Dairy/Dry Goods/etc", "carbon_footprint": 12.4, "alternative": "Low-carbon alternative (e.g. Organic Tofu 0.8kg CO2)"}
+                ],
+                "total_carbon": 15.6,
+                "highest_impact_item": "Grass-fed Beef 500g",
+                "sustainability_grade": "C"
+            }
+            Do not include markdown tags like ```json in the output. Output pure JSON.
+            """
+            
+            model_name = "llama-3.2-11b-vision-preview" if is_groq else ("grok-2-vision-preview" if is_grok else "gpt-4o-mini")
+            kwargs = {
+                "model": model_name,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are a professional ESG auditor that returns itemized JSON reports."
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{base64_image}"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "max_tokens": 800
+            }
+            
+            if not is_grok and not is_groq:
+                kwargs["response_format"] = {"type": "json_object"}
+                
+            if HAS_NEW_OPENAI:
+                response = client.chat.completions.create(**kwargs)
+                res_content = response.choices[0].message.content
+            else:
+                response = openai.ChatCompletion.create(
+                    model="gpt-4-vision-preview",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are a professional ESG auditor that returns itemized JSON reports."
+                        },
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": prompt},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{base64_image}"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    max_tokens=800
+                )
+                res_content = response.choices[0].message.content
+                
+            cleaned_res = res_content.strip()
+            if cleaned_res.startswith("```json"):
+                cleaned_res = cleaned_res[7:]
+            if cleaned_res.endswith("```"):
+                cleaned_res = cleaned_res[:-3]
+            cleaned_res = cleaned_res.strip()
+            
+            return json.loads(cleaned_res)
+        except Exception as e:
+            print(f"Receipt Vision API error: {e}. Falling back to simulation.")
+            
+    return {
+        "items": [
+            {"name": "Local Strawberries (500g)", "category": "Produce", "carbon_footprint": 0.2, "alternative": "Perfect choice (locally sourced)"},
+            {"name": "Imported Beef Steak (300g)", "category": "Meat", "carbon_footprint": 9.6, "alternative": "Organic Chicken (1.8kg CO2) or Lentils (0.3kg CO2)"},
+            {"name": "Almond Milk (1L)", "category": "Dairy-Alternative", "carbon_footprint": 0.7, "alternative": "Oat Milk (0.4kg CO2)"},
+            {"name": "Avocados (3-pack)", "category": "Produce", "carbon_footprint": 1.1, "alternative": "Local apples/pears (0.1kg CO2)"}
+        ],
+        "total_carbon": 11.6,
+        "highest_impact_item": "Imported Beef Steak (300g)",
+        "sustainability_grade": "D"
+    }
+

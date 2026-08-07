@@ -166,7 +166,7 @@ function animateLandingCanvas() {
 // ==========================================
 function switchView(viewName) {
   // Hide all view panels
-  const views = ['dashboard', 'scanner', 'analytics', 'marketplace', 'community'];
+  const views = ['dashboard', 'scanner', 'analytics', 'marketplace', 'community', 'tools', 'passport'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
     if (el) el.style.display = "none";
@@ -188,7 +188,9 @@ function switchView(viewName) {
     'scanner': 'AI Waste Scanner',
     'analytics': 'Footprint Analytics',
     'marketplace': 'Eco Marketplace',
-    'community': 'Global Eco Community'
+    'community': 'Global Eco Community',
+    'tools': 'Eco Detective & Guide',
+    'passport': 'Eco Passport Booklet'
   };
   document.getElementById("section-title").textContent = titleMap[viewName];
   
@@ -201,6 +203,14 @@ function switchView(viewName) {
   
   if (viewName === 'analytics') {
     setTimeout(initAnalyticsCharts, 100);
+  }
+  
+  if (viewName === 'tools') {
+    runCarbonDetective();
+  }
+  
+  if (viewName === 'passport') {
+    renderPassport();
   }
   
   announceAccessibility(`Navigating to ${titleMap[viewName]} panel.`);
@@ -517,12 +527,10 @@ function animateEcosphere() {
       ecoCtx.stroke();
     }
   }
-  
   ecoAnimationId = requestAnimationFrame(animateEcosphere);
 }
 
 function drawEvolution(score, cx, cy) {
-  // Phase mapping helpers
   if (score <= 100) {
     // Seed: draw seedling sprout
     drawSprout(cx, cy, 25);
@@ -530,43 +538,52 @@ function drawEvolution(score, cx, cy) {
   else if (score <= 250) {
     // Plant: small leafy plant
     drawPlant(cx, cy, 45);
+    drawFlowers();
   } 
   else if (score <= 400) {
     // Tree: single beautiful tree
     drawTree(cx, cy, 70);
+    drawFlowers();
   } 
   else if (score <= 550) {
     // Forest: multiple trees
     drawTree(cx - 50, cy + 5, 50);
     drawTree(cx + 60, cy + 10, 45);
-    drawTree(cx, cy, 75); // main
+    drawTree(cx, cy, 75); 
+    drawFlowers();
   } 
   else if (score <= 700) {
-    // River: forest + blue winding river
+    // River: forest + winding river + butterflies
     drawRiver();
     drawTree(cx - 60, cy + 5, 55);
     drawTree(cx + 70, cy + 10, 50);
     drawTree(cx, cy, 75);
+    drawFlowers();
+    drawButterflies();
   } 
   else if (score <= 850) {
-    // Wildlife: Forest + river + flying birds
+    // Wildlife: Forest + river + birds + butterflies
     drawRiver();
     drawTree(cx - 70, cy + 5, 55);
     drawTree(cx + 80, cy + 10, 50);
     drawTree(cx, cy, 78);
     drawBirds();
+    drawFlowers();
+    drawButterflies();
   } 
   else if (score <= 950) {
-    // Nature Reserve: Forest + river + birds + mountain backdrops
+    // Nature Reserve: Forest + mountains + river + birds + butterflies
     drawMountains(cx, cy);
     drawRiver();
     drawTree(cx - 70, cy + 15, 60);
     drawTree(cx + 80, cy + 20, 50);
     drawTree(cx, cy + 5, 80);
     drawBirds();
+    drawFlowers();
+    drawButterflies();
   } 
   else {
-    // Smart Eco City: Integrated wind turbines + green skyscrapers + solar
+    // Paradise / Smart Eco City: clean tech turbines + green buildings + birds + butterflies
     drawMountains(cx, cy);
     drawRiver();
     drawFutureSkyline(cx, cy);
@@ -574,11 +591,13 @@ function drawEvolution(score, cx, cy) {
     drawTree(cx + 100, cy + 20, 50);
     drawWindTurbine(cx - 140, cy - 20, 30);
     drawWindTurbine(cx + 130, cy - 10, 25);
+    drawBirds();
+    drawFlowers();
+    drawButterflies();
   }
 }
 
 function drawSprout(x, y, size) {
-  // Sprout stalk
   ecoCtx.strokeStyle = 'var(--primary-emerald)';
   ecoCtx.lineWidth = 3;
   ecoCtx.lineCap = 'round';
@@ -590,58 +609,37 @@ function drawSprout(x, y, size) {
   ecoCtx.quadraticCurveTo(x, y - size / 2, x + sway, y - size);
   ecoCtx.stroke();
   
-  // Leaflet right
   ecoCtx.fillStyle = 'var(--accent-lime)';
   ecoCtx.beginPath();
-  ecoCtx.ellipse(x + sway, y - size, 6, 3, Math.PI / 6, 0, Math.PI * 2);
-  ecoCtx.fill();
-  
-  // Leaflet left
-  ecoCtx.beginPath();
-  ecoCtx.ellipse(x + sway - 3, y - size - 2, 4, 2, -Math.PI / 4, 0, Math.PI * 2);
+  ecoCtx.ellipse(x + sway, y - size, 4, 8, Math.PI / 4, 0, Math.PI * 2);
   ecoCtx.fill();
 }
 
-function drawPlant(x, y, size) {
-  let sway = state.weather.wind ? Math.sin(Date.now() * 0.004) * 6 : 0;
-  
-  ecoCtx.strokeStyle = '#28a745';
+function drawPlant(x, y, height) {
+  ecoCtx.strokeStyle = 'var(--primary-emerald)';
   ecoCtx.lineWidth = 4;
+  ecoCtx.lineCap = 'round';
+  
+  let sway = state.weather.wind ? Math.sin(Date.now() * 0.004) * 5 : 0;
   
   ecoCtx.beginPath();
   ecoCtx.moveTo(x, y);
-  ecoCtx.quadraticCurveTo(x - 5, y - size * 0.4, x + sway, y - size);
+  ecoCtx.quadraticCurveTo(x, y - height * 0.6, x + sway, y - height);
   ecoCtx.stroke();
   
-  // Side branches
-  ecoCtx.lineWidth = 2.5;
+  ecoCtx.fillStyle = 'rgba(61, 220, 132, 0.7)';
   ecoCtx.beginPath();
-  ecoCtx.moveTo(x - 2, y - size * 0.4);
-  ecoCtx.quadraticCurveTo(x - 12 + sway * 0.5, y - size * 0.6, x - 18 + sway * 0.6, y - size * 0.65);
-  ecoCtx.moveTo(x + 2, y - size * 0.5);
-  ecoCtx.quadraticCurveTo(x + 12 + sway * 0.5, y - size * 0.7, x + 20 + sway * 0.6, y - size * 0.75);
-  ecoCtx.stroke();
-  
-  // Leaves
-  ecoCtx.fillStyle = 'var(--primary-emerald)';
-  // Main leaf
-  ecoCtx.beginPath();
-  ecoCtx.ellipse(x + sway, y - size, 10, 5, Math.PI / 4, 0, Math.PI * 2);
-  ecoCtx.fill();
-  
-  // Branch leaves
-  ecoCtx.beginPath();
-  ecoCtx.ellipse(x - 18 + sway * 0.6, y - size * 0.65, 8, 4, -Math.PI / 6, 0, Math.PI * 2);
-  ecoCtx.ellipse(x + 20 + sway * 0.6, y - size * 0.75, 8, 4, Math.PI / 3, 0, Math.PI * 2);
+  ecoCtx.ellipse(x + sway - 8, y - height + 10, 6, 12, -Math.PI / 6, 0, Math.PI * 2);
+  ecoCtx.ellipse(x + sway + 8, y - height + 15, 6, 10, Math.PI / 6, 0, Math.PI * 2);
+  ecoCtx.ellipse(x + sway, y - height, 8, 14, 0, 0, Math.PI * 2);
   ecoCtx.fill();
 }
 
 function drawTree(x, y, height) {
-  let sway = state.weather.wind ? Math.sin(Date.now() * 0.003 + x) * 8 : 0;
+  let sway = state.weather.wind ? Math.sin(Date.now() * 0.003) * 6 : 0;
   
-  // Trunk
-  ecoCtx.strokeStyle = '#3d2514';
-  ecoCtx.lineWidth = height * 0.12;
+  ecoCtx.strokeStyle = '#5a3d28';
+  ecoCtx.lineWidth = height * 0.1;
   ecoCtx.lineCap = 'round';
   
   ecoCtx.beginPath();
@@ -649,7 +647,6 @@ function drawTree(x, y, height) {
   ecoCtx.quadraticCurveTo(x, y - height * 0.5, x + sway, y - height);
   ecoCtx.stroke();
   
-  // Foliage clusters (layered translucent emerald circles)
   ecoCtx.fillStyle = 'rgba(61, 220, 132, 0.4)';
   const radius = height * 0.35;
   
@@ -660,7 +657,6 @@ function drawTree(x, y, height) {
   ecoCtx.arc(x + sway, y - height - radius * 0.4, radius * 0.7, 0, Math.PI * 2);
   ecoCtx.fill();
   
-  // Foliage core highlight
   ecoCtx.fillStyle = 'rgba(199, 254, 115, 0.3)';
   ecoCtx.beginPath();
   ecoCtx.arc(x + sway, y - height, radius * 0.6, 0, Math.PI * 2);
@@ -685,6 +681,79 @@ function drawRiver() {
   );
   ecoCtx.closePath();
   ecoCtx.fill();
+}
+
+let ecoButterflies = [];
+function drawButterflies() {
+  if (!ecoCanvas) return;
+  if (ecoButterflies.length === 0) {
+    for (let i = 0; i < 4; i++) {
+      ecoButterflies.push({
+        x: ecoCanvas.width * 0.3 + Math.random() * (ecoCanvas.width * 0.4),
+        y: ecoCanvas.height - 100 - Math.random() * 80,
+        angle: Math.random() * Math.PI * 2,
+        speed: 0.5 + Math.random() * 0.5,
+        color: i % 2 === 0 ? 'var(--secondary-cyan)' : 'var(--accent-lime)'
+      });
+    }
+  }
+  
+  ecoButterflies.forEach(b => {
+    b.x += Math.cos(b.angle) * b.speed;
+    b.y += Math.sin(b.angle) * b.speed + Math.sin(Date.now() * 0.05) * 0.8;
+    b.angle += Math.random() * 0.6 - 0.3;
+    
+    if (b.x < 20) b.x = ecoCanvas.width - 20;
+    if (b.x > ecoCanvas.width - 20) b.x = 20;
+    if (b.y < ecoCanvas.height - 180) b.y = ecoCanvas.height - 80;
+    if (b.y > ecoCanvas.height - 40) b.y = ecoCanvas.height - 120;
+    
+    ecoCtx.fillStyle = b.color;
+    ecoCtx.beginPath();
+    ecoCtx.ellipse(b.x - 3, b.y, 4, 6, Math.PI / 4, 0, Math.PI * 2);
+    ecoCtx.fill();
+    ecoCtx.beginPath();
+    ecoCtx.ellipse(b.x + 3, b.y, 4, 6, -Math.PI / 4, 0, Math.PI * 2);
+    ecoCtx.fill();
+    
+    ecoCtx.fillStyle = '#fff';
+    ecoCtx.beginPath();
+    ecoCtx.arc(b.x, b.y, 1.5, 0, Math.PI * 2);
+    ecoCtx.fill();
+  });
+}
+
+function drawFlowers() {
+  if (!ecoCanvas) return;
+  const flowerPositions = [
+    { x: ecoCanvas.width * 0.32, y: ecoCanvas.height - 45, color: '#ff5d73' },
+    { x: ecoCanvas.width * 0.44, y: ecoCanvas.height - 35, color: '#ffb340' },
+    { x: ecoCanvas.width * 0.58, y: ecoCanvas.height - 42, color: 'var(--secondary-cyan)' },
+    { x: ecoCanvas.width * 0.66, y: ecoCanvas.height - 38, color: '#ff80df' }
+  ];
+  
+  flowerPositions.forEach(f => {
+    ecoCtx.strokeStyle = '#0e4d28';
+    ecoCtx.lineWidth = 1.5;
+    ecoCtx.beginPath();
+    ecoCtx.moveTo(f.x, f.y);
+    ecoCtx.lineTo(f.x, f.y - 12);
+    ecoCtx.stroke();
+    
+    ecoCtx.fillStyle = f.color;
+    for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 3) {
+      let px = f.x + Math.cos(angle) * 3;
+      let py = f.y - 12 + Math.sin(angle) * 3;
+      ecoCtx.beginPath();
+      ecoCtx.arc(px, py, 2, 0, Math.PI * 2);
+      ecoCtx.fill();
+    }
+    
+    ecoCtx.fillStyle = '#fff';
+    ecoCtx.beginPath();
+    ecoCtx.arc(f.x, f.y - 12, 1.8, 0, Math.PI * 2);
+    ecoCtx.fill();
+  });
 }
 
 function drawBirds() {
@@ -1174,7 +1243,8 @@ function sendCoachMessage() {
       appendChatBubble('coach', data.response);
       chatHistoryList.push({ sender: 'coach', text: data.response });
       
-      // Speak out loud if voice assistant is active
+      // Speak out loud (Voice reply)
+      speakCoachReply(data.response);
       announceAccessibility(data.response);
       
       if (data.completed_mission) {
@@ -1194,6 +1264,7 @@ function sendCoachMessage() {
     }
     appendChatBubble('coach', simText);
     chatHistoryList.push({ sender: 'coach', text: simText });
+    speakCoachReply(simText);
     announceAccessibility(simText);
     
     // Trigger energy mission local check
@@ -1888,4 +1959,543 @@ function toggleFloatingCoachPanel() {
     announceAccessibility("AI Eco Coach collapsed.");
   }
 }
+
+function toggleFloatingCoachPanel() {
+  const panel = document.getElementById("floating-coach-panel");
+  if (!panel) return;
+  panel.classList.toggle("active");
+  
+  if (panel.classList.contains("active")) {
+    document.getElementById("chat-input").focus();
+    announceAccessibility("AI Eco Coach expanded. Type your sustainability questions.");
+  } else {
+    announceAccessibility("AI Eco Coach collapsed.");
+  }
+}
+
+function speakCoachReply(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.pitch = 1.0;
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
+  }
+}
+
+function switchToolSubView(name) {
+  document.querySelectorAll('.tool-subview').forEach(div => div.style.display = 'none');
+  const target = document.getElementById(`sub-tool-${name}`);
+  if (target) target.style.display = 'block';
+  
+  document.getElementById('tab-detective').classList.remove('active-tool-tab');
+  document.getElementById('tab-receipt').classList.remove('active-tool-tab');
+  document.getElementById('tab-guide').classList.remove('active-tool-tab');
+  
+  const tabEl = document.getElementById(`tab-${name}`);
+  if (tabEl) tabEl.classList.add('active-tool-tab');
+  
+  announceAccessibility(`Switched to tool: ${name}`);
+}
+
+let detectiveChart = null;
+let footprintHistory = [];
+
+function runCarbonDetective() {
+  const carEl = document.getElementById('slide-car');
+  const transitEl = document.getElementById('slide-transit');
+  const activeEl = document.getElementById('slide-active');
+  const flightEl = document.getElementById('slide-flight');
+  const elecEl = document.getElementById('slide-elec');
+  const waterEl = document.getElementById('slide-water');
+  const dietEl = document.getElementById('slide-diet');
+  const shopEl = document.getElementById('slide-shopping');
+  const plasticEl = document.getElementById('slide-plastic');
+  const internetEl = document.getElementById('slide-internet');
+  const appliancesEl = document.getElementById('slide-appliances');
+  
+  if (!carEl || !transitEl || !activeEl || !flightEl || !elecEl || !waterEl || !dietEl || !shopEl || !plasticEl || !internetEl || !appliancesEl) return;
+  
+  const car = parseInt(carEl.value);
+  const transit = parseInt(transitEl.value);
+  const active = parseInt(activeEl.value);
+  const flight = parseInt(flightEl.value);
+  const elec = parseInt(elecEl.value);
+  const water = parseInt(waterEl.value);
+  const diet = parseInt(dietEl.value);
+  const shopping = parseInt(shopEl.value);
+  const plastic = parseInt(plasticEl.value);
+  const internet = parseInt(internetEl.value);
+  const appliances = parseInt(appliancesEl.value);
+  
+  // Update slide metric displays
+  document.getElementById('val-car').innerText = car;
+  document.getElementById('val-transit').innerText = transit;
+  document.getElementById('val-active').innerText = active;
+  document.getElementById('val-flight').innerText = flight;
+  document.getElementById('val-elec').innerText = elec;
+  document.getElementById('val-water').innerText = water;
+  document.getElementById('val-shopping').innerText = shopping;
+  document.getElementById('val-plastic').innerText = plastic;
+  document.getElementById('val-internet').innerText = internet;
+  document.getElementById('val-appliances').innerText = appliances;
+  
+  let dietLabel = "";
+  let dietCarbon = 0;
+  if (diet === 1) { dietLabel = "Vegan (Low)"; dietCarbon = 500; }
+  else if (diet === 2) { dietLabel = "Vegetarian (Medium)"; dietCarbon = 1100; }
+  else if (diet === 3) { dietLabel = "Mixed (Average)"; dietCarbon = 1800; }
+  else { dietLabel = "Heavy Meat (High)"; dietCarbon = 3200; }
+  document.getElementById('label-diet').innerText = dietLabel;
+  
+  // Calculate yearly footprints in kg
+  const carFootprint = Math.max(0, car * 52 * 0.18);
+  const transitFootprint = transit * 52 * 0.08;
+  const activeOffset = active * 52 * 0.18; // offset value
+  const flightFootprint = flight * 90;
+  const elecFootprint = elec * 12 * 0.4;
+  const waterFootprint = water * 365 * 0.0003;
+  const dietFootprint = dietCarbon;
+  const shoppingFootprint = shopping * 12 * 0.2;
+  const plasticFootprint = plastic * 52 * 0.05;
+  const internetFootprint = internet * 365 * 0.02;
+  const appliancesFootprint = appliances * 365 * 0.5;
+  
+  const transTotal = Math.max(0, carFootprint + transitFootprint + flightFootprint - activeOffset);
+  const utilitiesTotal = elecFootprint + waterFootprint;
+  const lifestyleTotal = dietFootprint + shoppingFootprint + plasticFootprint + internetFootprint + appliancesFootprint;
+  
+  const yearlyTotalKg = transTotal + utilitiesTotal + lifestyleTotal;
+  
+  // Scope toggles
+  const scope = document.getElementById('estimator-scope').value;
+  let displayValue = 0;
+  let scopeLabel = "";
+  
+  if (scope === 'yearly') {
+    displayValue = yearlyTotalKg / 1000.0; // in Tons
+    scopeLabel = "Yearly";
+  } else if (scope === 'monthly') {
+    displayValue = (yearlyTotalKg / 12.0); // in kg
+    scopeLabel = "Monthly";
+  } else if (scope === 'weekly') {
+    displayValue = (yearlyTotalKg / 52.0); // in kg
+    scopeLabel = "Weekly";
+  } else {
+    displayValue = (yearlyTotalKg / 365.0); // in kg
+    scopeLabel = "Daily";
+  }
+  
+  document.getElementById('lbl-scope-title').innerText = scopeLabel;
+  
+  const totalFields = document.querySelectorAll('#detective-total');
+  totalFields.forEach(el => {
+    el.innerText = scope === 'yearly' ? displayValue.toFixed(1) : Math.round(displayValue);
+  });
+  
+  // Set hotspots
+  let hotspotName = "";
+  let hotspotDesc = "";
+  const maxCategoryVal = Math.max(transTotal, utilitiesTotal, lifestyleTotal);
+  
+  if (maxCategoryVal === transTotal) {
+    hotspotName = "Transportation & Travel";
+    hotspotDesc = `Your travel patterns represent ${((transTotal/yearlyTotalKg)*100).toFixed(0)}% of your emissions. Try active commuting (walking/biking) or swapping solo car trips for train/bus routes to offset emissions!`;
+    document.getElementById('card-hotspot').style.borderColor = 'rgba(0, 212, 255, 0.2)';
+    document.getElementById('card-hotspot').style.background = 'rgba(0, 212, 255, 0.03)';
+  } else if (maxCategoryVal === utilitiesTotal) {
+    hotspotName = "Home Utility Load";
+    hotspotDesc = `Home energy and water usage accounts for ${((utilitiesTotal/yearlyTotalKg)*100).toFixed(0)}% of your footprint. Shut off vampire standby appliances, transition to LED light bulbs, or limit shower times.`;
+    document.getElementById('card-hotspot').style.borderColor = 'rgba(255, 93, 115, 0.2)';
+    document.getElementById('card-hotspot').style.background = 'rgba(255, 93, 115, 0.03)';
+  } else {
+    hotspotName = "Diet & Shopping Purchases";
+    hotspotDesc = `Lifestyle items represent ${((lifestyleTotal/yearlyTotalKg)*100).toFixed(0)}% of your footprint. Try introducing a plant-rich diet twice a week, reducing shopping wraps, or reusing plastic bottles.`;
+    document.getElementById('card-hotspot').style.borderColor = 'rgba(199, 254, 115, 0.2)';
+    document.getElementById('card-hotspot').style.background = 'rgba(199, 254, 115, 0.03)';
+  }
+  
+  document.getElementById('lbl-hotspot-name').innerText = hotspotName;
+  document.getElementById('lbl-hotspot-desc').innerText = hotspotDesc;
+  
+  // Render Breakdown chart
+  renderDetectiveBreakdownChart(transTotal, utilitiesTotal, lifestyleTotal);
+}
+
+function renderDetectiveBreakdownChart(trans, utils, life) {
+  const canvas = document.getElementById('chart-detective-breakdown');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  if (detectiveChart) detectiveChart.destroy();
+  
+  detectiveChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Transportation', 'Utilities', 'Lifestyle'],
+      datasets: [{
+        data: [Math.round(trans), Math.round(utils), Math.round(life)],
+        backgroundColor: ['#00D4FF', '#3DDC84', '#FFB340'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { color: '#B8C2B3', font: { size: 9 } }
+        }
+      }
+    }
+  });
+}
+
+function logFootprintHistory() {
+  const total = document.getElementById('detective-total').innerText;
+  const scope = document.getElementById('lbl-scope-title').innerText;
+  const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  
+  footprintHistory.unshift({ total, scope, time: timestamp });
+  if (footprintHistory.length > 3) footprintHistory.pop();
+  
+  renderFootprintHistory();
+  triggerToast("Calculation logged to history timeline!", "success");
+}
+
+function renderFootprintHistory() {
+  const container = document.getElementById('footprint-history-list');
+  if (!container) return;
+  container.innerHTML = "";
+  
+  if (footprintHistory.length === 0) {
+    container.innerHTML = `<p class="text-secondary" style="font-size: 0.7rem; text-align: center; padding: 10px 0;">No calculation history logs stored yet.</p>`;
+    return;
+  }
+  
+  footprintHistory.forEach(h => {
+    const div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.justify = 'space-between';
+    div.style.fontSize = '0.75rem';
+    div.style.padding = '6px 8px';
+    div.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
+    div.innerHTML = `
+      <span style="color: var(--text-secondary);">${h.time} (${h.scope} audit)</span>
+      <strong style="color: #fff;">${h.total} ${h.scope === 'Yearly' ? 'Tons' : 'kg'} CO₂</strong>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function handleReceiptDrop(e) {
+  e.preventDefault();
+  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    uploadReceipt(e.dataTransfer.files[0]);
+  }
+}
+
+function handleReceiptFile(e) {
+  if (e.target.files && e.target.files[0]) {
+    uploadReceipt(e.target.files[0]);
+  }
+}
+
+function uploadReceipt(file) {
+  const dragArea = document.getElementById('receipt-drag-area');
+  dragArea.innerText = "Analyzing receipt carbon footprint... Please wait.";
+  dragArea.style.opacity = "0.7";
+  
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('user_id', state.user_id || 'demo_user');
+  
+  fetch('/api/scan/receipt', {
+    method: 'POST',
+    body: formData
+  })
+  .then(r => r.json())
+  .then(data => {
+    dragArea.innerText = "Drag & Drop Grocery Receipts Here to Analyze (PET bottles, grocery lists, beef steak lines...)";
+    dragArea.style.opacity = "1";
+    
+    if (data.success && data.result) {
+      triggerToast("Receipt analyzed successfully!", "success");
+      
+      const res = data.result;
+      document.getElementById('receipt-results-container').style.display = 'block';
+      document.getElementById('rec-hotspot').innerText = res.highest_impact_item;
+      document.getElementById('rec-total-carbon').innerText = res.total_carbon.toFixed(1);
+      document.getElementById('rec-grade').innerText = res.sustainability_grade;
+      
+      const gradeEl = document.getElementById('rec-grade');
+      if (res.sustainability_grade === 'A' || res.sustainability_grade === 'B') {
+        gradeEl.style.color = 'var(--accent-lime)';
+      } else if (res.sustainability_grade === 'C') {
+        gradeEl.style.color = 'var(--secondary-cyan)';
+      } else {
+        gradeEl.style.color = 'var(--danger)';
+      }
+      
+      const tbody = document.getElementById('receipt-table-body');
+      tbody.innerHTML = '';
+      
+      res.items.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="padding: 12px 0; font-weight: 500; color: #fff;">${item.name}</td>
+          <td style="color: var(--text-secondary);">${item.category}</td>
+          <td style="color: var(--danger); font-weight: 600;">${item.carbon_footprint} kg CO₂</td>
+          <td style="color: var(--accent-lime);">${item.alternative}</td>
+        `;
+        tbody.appendChild(row);
+      });
+      
+      if (data.profile) {
+        updateUIWithProfile(data.profile);
+      }
+    } else {
+      triggerToast("Failed to analyze receipt.", "error");
+    }
+  })
+  .catch(err => {
+    dragArea.innerText = "Drag & Drop Grocery Receipts Here to Analyze (PET bottles, grocery lists, beef steak lines...)";
+    dragArea.style.opacity = "1";
+    triggerToast("Error processing request.", "error");
+    console.error(err);
+  });
+}
+
+function acceptChallengeLocal(id) {
+  if (!state.accepted_challenges) state.accepted_challenges = [];
+  if (!state.accepted_challenges.includes(id)) {
+    state.accepted_challenges.push(id);
+    triggerToast("Challenge accepted! Track your progress to complete it.", "success");
+    announceAccessibility(`Challenge accepted. Target challenge id is ${id}.`);
+    fetchChallenges();
+  }
+}
+
+function renderMissions(challenges) {
+  const container = document.getElementById("missions-container");
+  if (!container) return;
+  container.innerHTML = "";
+  
+  let doneCount = 0;
+  if (!state.accepted_challenges) {
+    state.accepted_challenges = [];
+  }
+  
+  challenges.forEach(ch => {
+    if (ch.completed) doneCount++;
+    
+    const isAccepted = state.accepted_challenges.includes(ch.id);
+    const div = document.createElement("div");
+    div.className = `mission-item ${ch.completed ? 'completed' : ''}`;
+    
+    let actionBtn = "";
+    if (ch.completed) {
+      actionBtn = `<span style="color: var(--accent-lime); font-size: 0.75rem; font-weight: 600;">🏆 Completed</span>`;
+    } else if (isAccepted) {
+      actionBtn = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="text-secondary" style="font-size: 0.65rem; color: var(--warning);">⏳ Tracking</span>
+          <button class="btn btn-primary" onclick="completeChallengeLocal('${ch.id}')" style="padding: 4px 8px; font-size: 0.65rem; border-radius: 6px;">Complete</button>
+        </div>
+      `;
+    } else {
+      actionBtn = `<button class="btn btn-secondary" onclick="acceptChallengeLocal('${ch.id}')" style="padding: 4px 8px; font-size: 0.65rem; border-radius: 6px;">Accept</button>`;
+    }
+    
+    div.innerHTML = `
+      <div class="mission-checkbox" onclick="${ch.completed ? '' : `completeChallengeLocal('${ch.id}')`}"></div>
+      <div class="mission-content" style="flex: 1;">
+        <div class="mission-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 600; color: #fff;">${ch.title}</span>
+          ${actionBtn}
+        </div>
+        <div class="mission-desc" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 3px;">${ch.description}</div>
+        <div class="mission-rewards" style="margin-top: 6px;">
+          <span class="reward-tag reward-xp">+${ch.xp_reward} XP</span>
+          <span class="reward-tag reward-coins">+${ch.coins_reward} coins</span>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+  
+  document.getElementById("lbl-missions-completed").textContent = `${doneCount}/${challenges.length} Done`;
+}
+
+const LOCAL_GUIDE_DATABASE = {
+  "bottle": { title: "Plastic Juice Bottle", recyclable: "Recyclable", category: "Plastic #1 (PET)", disposal: "Rinse container clean, discard caps separately, throw in Blue Bin.", reuse: "Plant seedling sprout container or dry bean storage.", impact: "Saves 0.08kg CO₂ per bottle." },
+  "plastic": { title: "Soft Wrap Packagings", recyclable: "Special Recycle", category: "Plastic #4 (LDPE)", disposal: "Collect dry and deliver to local supermarket grocery dropoff centers.", reuse: "Use as package padding fillers.", impact: "Prevents toxic chemicals leakages in landfills." },
+  "laptop": { title: "Electronic Laptop (E-Waste)", recyclable: "Recyclable (Special)", category: "E-Waste", disposal: "Do not throw in household bins. Deliver to certified campus e-waste kiosks.", reuse: "Donate if functional, or upcycle into server.", impact: "Recovers precious lead/cobalt metals." },
+  "phone": { title: "Smart Cellular Phone (E-Waste)", recyclable: "Recyclable (Special)", category: "E-Waste", disposal: "Deliver to battery collection points or local e-recyclers.", reuse: "Alarm clock, media terminal, smart cam controller.", impact: "Saves 15kg CO₂ manufacturing loads." },
+  "battery": { title: "Alkaline AA/Lithium Battery", recyclable: "Recyclable (Special)", category: "E-Waste / Toxic", disposal: "Do not burn or drop in trash. Put inside collection battery tubes on campus.", reuse: "None. Direct recycling is required.", impact: "Avoids heavy metal leaking to local soils." },
+  "paper": { title: "Office Printing Papers", recyclable: "Recyclable", category: "Paper / Fiber", disposal: "Remove plastic tapes and drop in green recycling paper container.", reuse: "Compost brown materials mix, wrapping.", impact: "Saves trees. Reduces emissions by 0.03kg." },
+  "glass": { title: "Glass Jam Jars", recyclable: "Recyclable", category: "Glass Containers", disposal: "Wash residual food debris. Put inside glass collection boxes.", reuse: "Spice holder containers, drink jars.", impact: "Cuts energy requirements by 30% vs sand glass melting." }
+};
+
+function handleGuideSearchKey(e) {
+  if (e.key === 'Enter') {
+    searchGuideItem();
+  }
+}
+
+function searchGuideItem() {
+  const input = document.getElementById('guide-search-input');
+  const text = input.value.trim().toLowerCase();
+  if (!text) return;
+  
+  let match = null;
+  for (let key in LOCAL_GUIDE_DATABASE) {
+    if (text.includes(key)) {
+      match = LOCAL_GUIDE_DATABASE[key];
+      break;
+    }
+  }
+  
+  if (match) {
+    renderGuideSearchResult(match);
+  } else {
+    // AI Vision fallback lookup
+    const resBox = document.getElementById('guide-search-result');
+    resBox.style.display = 'block';
+    document.getElementById('guide-res-title').innerText = `Looking up "${input.value}" via AI...`;
+    
+    // Call scan simulation
+    setTimeout(() => {
+      const mockResult = {
+        title: input.value + " (AI Audited)",
+        recyclable: "Recyclable",
+        category: "General Solid Waste",
+        disposal: "Place in standard recycle bins or local sorting centers.",
+        reuse: "Clean and reuse for domestic organizing storage.",
+        impact: "Diverts landfill volumes and saves CO₂."
+      };
+      renderGuideSearchResult(mockResult);
+    }, 1200);
+  }
+}
+
+function renderGuideSearchResult(data) {
+  document.getElementById('guide-search-result').style.display = 'block';
+  document.getElementById('guide-res-title').innerText = data.title;
+  document.getElementById('guide-res-recyclable').innerText = data.recyclable;
+  
+  const recEl = document.getElementById('guide-res-recyclable');
+  if (data.recyclable.toLowerCase().includes("non") || data.recyclable.toLowerCase().includes("rarely")) {
+    recEl.style.background = 'rgba(255, 93, 115, 0.15)';
+    recEl.style.color = 'var(--danger)';
+  } else {
+    recEl.style.background = 'rgba(61, 220, 132, 0.15)';
+    recEl.style.color = 'var(--accent-lime)';
+  }
+  
+  document.getElementById('guide-res-category').innerText = data.category;
+  document.getElementById('guide-res-disposal').innerText = data.disposal;
+  document.getElementById('guide-res-reuse').innerText = data.reuse;
+  document.getElementById('guide-res-impact').innerText = data.impact;
+  
+  announceAccessibility(`Search result found for ${data.title}. Category is ${data.category}.`);
+}
+
+const PRESET_TIPS = [
+  { text: "Unplugging standby vampire energy loads saves up to 10% on domestic electricity utility bills.", category: "Energy" },
+  { text: "Transitioning to plant-rich diet meals twice a week reduces dietary greenhouse outputs by 30%.", category: "Food" },
+  { text: "Restricting shower times to 5 minutes conserves 40 liters of drinking water per session.", category: "Water" },
+  { text: "Walk or cycle commutes for trips under 5km eliminates automotive fossil fuel emissions completely.", category: "Travel" },
+  { text: "Bringing reusable cotton bags to groceries avoids single-use plastic package contributions.", category: "Shopping" },
+  { text: "Plastics #1 (PET) and #2 (HDPE) possess the highest recycling efficiency in municipal sorting mills.", category: "Plastic" },
+  { text: "Composting organic scraps prevents methane release, a gas 25x more greenhouse-potent than CO₂.", category: "Climate" }
+];
+
+function loadRandomTip() {
+  const tip = PRESET_TIPS[Math.floor(Math.random() * PRESET_TIPS.length)];
+  document.getElementById('tip-category').innerText = tip.category;
+  document.getElementById('tip-content').innerText = `"${tip.text}"`;
+  
+  // Custom category colors
+  const catEl = document.getElementById('tip-category');
+  if (tip.category === 'Energy') catEl.style.color = 'var(--warning)';
+  else if (tip.category === 'Water') catEl.style.color = 'var(--secondary-cyan)';
+  else if (tip.category === 'Food') catEl.style.color = 'var(--accent-lime)';
+  else catEl.style.color = 'var(--primary-emerald)';
+  
+  announceAccessibility(`New tip loaded. Category is ${tip.category}: ${tip.text}`);
+}
+
+function favoriteTip() {
+  triggerToast("Tip added to your favorites list! ⭐", "success");
+}
+
+function saveTip() {
+  triggerToast("Tip downloaded to offline notebook database! 💾", "success");
+}
+
+function shareTip() {
+  triggerToast("Tip copy link copied to clipboard! 📢", "success");
+}
+
+function renderPassport() {
+  document.getElementById('pass-name').innerText = state.profile.name || "Demo User";
+  document.getElementById('pass-level').innerText = `Level ${state.profile.level}`;
+  
+  const stampsBox = document.getElementById('passport-stamps');
+  stampsBox.innerHTML = "";
+  
+  const timelineBox = document.getElementById('passport-timeline');
+  timelineBox.innerHTML = "";
+  
+  const completed = state.profile.completed_challenges || [];
+  
+  // Render Country-style passport stamps
+  const stampsPool = [
+    { id: "scan_recycle", label: "Scanner Outpost", icon: "🌱", class: "stamp-water" },
+    { id: "chat_energy", label: "Energy Grid", icon: "⚡", class: "stamp-energy" },
+    { id: "water_conservation", label: "Conservation", icon: "💧", class: "stamp-transit" },
+    { id: "eco_marketplace", label: "Forest Sector", icon: "🌳", class: "stamp-food" }
+  ];
+  
+  let stampedCount = 0;
+  stampsPool.forEach(s => {
+    const isCompleted = completed.includes(s.id);
+    const div = document.createElement('div');
+    
+    if (isCompleted) {
+      stampedCount++;
+      div.className = `stamp-badge ${s.class}`;
+      div.innerHTML = `
+        <span style="font-size: 1.2rem; display: block; margin-bottom: 2px;">${s.icon}</span>
+        <span>${s.label}</span>
+      `;
+      
+      // Append timeline log item too
+      const item = document.createElement('div');
+      item.innerHTML = `
+        <strong style="color: #fff; font-size: 0.8rem; display: block;">Unlocked ${s.label} Passport Stamp</strong>
+        <span class="text-secondary" style="font-size: 0.7rem;">Completed challenge tasks for sustainability points.</span>
+      `;
+      timelineBox.appendChild(item);
+    } else {
+      div.className = "stamp-badge";
+      div.style.borderColor = "var(--border-color)";
+      div.style.color = "var(--text-muted)";
+      div.style.opacity = "0.3";
+      div.innerHTML = `
+        <span style="font-size: 1.2rem; display: block; margin-bottom: 2px;">🔒</span>
+        <span>Locked</span>
+      `;
+    }
+    stampsBox.appendChild(div);
+  });
+  
+  if (stampedCount === 0) {
+    timelineBox.innerHTML = `<p class="text-secondary" style="font-size: 0.7rem; text-align: center; padding: 10px 0;">Complete challenges to earn your country-style passport stamps!</p>`;
+  }
+}
+
+
 

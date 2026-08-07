@@ -506,7 +506,6 @@ a {
   gap: 40px;
 }
 
-/* KPI Panel */
 .kpi-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1381,4 +1380,105 @@ a {
   margin-bottom: 6px;
   font-weight: 500;
 }
+
+/* Eco Tools & Receipt Table Styles */
+.active-tool-tab {
+  background: linear-gradient(135deg, var(--secondary-cyan), var(--primary-emerald)) !important;
+  color: var(--bg-primary) !important;
+  border-color: transparent !important;
+  font-weight: 600;
+}
+
+.receipt-table th, .receipt-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.receipt-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.01);
+}
+
+#receipt-drag-area:hover {
+  border-color: var(--secondary-cyan) !important;
+  background: rgba(0, 212, 255, 0.02);
+  color: #fff !important;
+}
+
+.estimator-slider-group input[type="range"] {
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+}
+
+/* Eco Passport & Print Styles */
+.stamp-badge {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed;
+  margin: 0 auto;
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 4px;
+  transition: transform 0.4s;
+}
+
+.stamp-badge:hover {
+  transform: rotate(15deg) scale(1.1);
+}
+
+.stamp-transit {
+  border-color: var(--secondary-cyan);
+  color: var(--secondary-cyan);
+  background: rgba(0, 212, 255, 0.05);
+}
+
+.stamp-energy {
+  border-color: var(--warning);
+  color: var(--warning);
+  background: rgba(255, 179, 64, 0.05);
+}
+
+.stamp-water {
+  border-color: var(--primary-emerald);
+  color: var(--primary-emerald);
+  background: rgba(61, 220, 132, 0.05);
+}
+
+.stamp-food {
+  border-color: var(--accent-lime);
+  color: var(--accent-lime);
+  background: rgba(199, 254, 115, 0.05);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #view-passport, #view-passport * {
+    visibility: visible;
+  }
+  #view-passport {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    background: #112018 !important;
+  }
+  #view-passport button {
+    display: none !important;
+  }
+  .sidebar, .topbar, .floating-coach-wrapper {
+    display: none !important;
+  }
+}
+
+
 

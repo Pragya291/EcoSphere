@@ -209,6 +209,18 @@
                             Community
                         </a>
                     </li>
+                    <li class="nav-item" id="menu-tools">
+                        <a href="#" onclick="switchView('tools')">
+                            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                            Eco Tools
+                        </a>
+                    </li>
+                    <li class="nav-item" id="menu-passport">
+                        <a href="#" onclick="switchView('passport')">
+                            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20M4 19.5V3.5A2.5 2.5 0 0 1 6.5 1h13.5v18H6.5a2.5 2.5 0 0 0-2.5 2.5z"/></svg>
+                            Eco Passport
+                        </a>
+                    </li>
                 </ul>
             </nav>
             
@@ -402,6 +414,22 @@
                             <h3>Forecast timeline</h3>
                             <div class="twin-projection-chart">
                                 <canvas id="chart-twin-projection"></canvas>
+                            </div>
+                        <!-- Daily Eco Tips Card -->
+                        <div class="card" style="display: flex; flex-direction: column; gap: 15px; margin-top: 30px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3>💡 Daily Eco Tip</h3>
+                                <span class="reward-tag" id="tip-category" style="background: rgba(0, 212, 255, 0.15); color: var(--secondary-cyan);">Energy</span>
+                            </div>
+                            <p id="tip-content" style="font-size: 0.9rem; line-height: 1.4; color: #fff; font-style: italic;">"Shutting down standby current to idle electronics prevents vampire loads."</p>
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                                <div style="display: flex; gap: 12px;">
+                                    <button class="btn-weather" onclick="favoriteTip()" aria-label="Favorite tip">⭐</button>
+                                    <button class="btn-weather" onclick="saveTip()" aria-label="Save tip">💾</button>
+                                    <button class="btn-weather" onclick="shareTip()" aria-label="Share tip">📢</button>
+                                </div>
+                                <button class="btn btn-secondary" onclick="loadRandomTip()" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">Next Tip 🔄</button>
                             </div>
                         </div>
                     </section>
@@ -623,6 +651,358 @@
                     </div>
                 </div>
             </div>
+            <!-- ==========================================
+                 ECO TOOLS VIEW (DETECTIVE, ANALYZER, GUIDE)
+                 ========================================== -->
+            <div id="view-tools" style="display: none; padding: 40px; width: 100%;">
+                
+                <!-- Internal Tab Selectors -->
+                <div style="display: flex; gap: 15px; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px;">
+                    <button class="btn btn-secondary active-tool-tab" id="tab-detective" onclick="switchToolSubView('detective')" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 20px;">🕵️ Carbon Detective</button>
+                    <button class="btn btn-secondary" id="tab-receipt" onclick="switchToolSubView('receipt')" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 20px;">🧾 Receipt Analyzer</button>
+                    <button class="btn btn-secondary" id="tab-guide" onclick="switchToolSubView('guide')" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 20px;">♻️ Recycling Guide</button>
+                </div>
+
+                <!-- SUB-VIEW 1: CARBON DETECTIVE -->
+                <div id="sub-tool-detective" class="tool-subview" style="display: block;">
+                    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px;">
+                        
+                        <!-- Footprint Estimator Sliders -->
+                        <div class="card" style="display: flex; flex-direction: column; gap: 20px; max-height: 680px; overflow-y: auto; scrollbar-width: thin;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3>Carbon Footprint Estimator</h3>
+                                <!-- Daily / Weekly / Monthly / Yearly Selector -->
+                                <select id="estimator-scope" onchange="runCarbonDetective()" style="background: #112018; border: 1px solid var(--border-color); color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; outline: none;">
+                                    <option value="yearly" selected>Yearly View</option>
+                                    <option value="monthly">Monthly View</option>
+                                    <option value="weekly">Weekly View</option>
+                                    <option value="daily">Daily View</option>
+                                </select>
+                            </div>
+                            <p class="text-secondary" style="font-size: 0.8rem;">Adjust your lifestyle stats. Active transits (bike/walk) will offset your footprint!</p>
+                            
+                            <div class="estimator-slider-group" style="display: flex; flex-direction: column; gap: 15px; margin-top: 5px;">
+                                <!-- Transportation: Car -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span class="text-secondary">🚗 Car Driving Distance</span>
+                                        <span style="color: var(--secondary-cyan); font-weight: 600;"><span id="val-car">150</span> km/week</span>
+                                    </div>
+                                    <input type="range" id="slide-car" min="0" max="800" value="150" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--secondary-cyan);">
+                                </div>
+                                <!-- Transportation: Public Transit -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span class="text-secondary">🚌 Bus / Train Commutes</span>
+                                        <span style="color: var(--primary-emerald); font-weight: 600;"><span id="val-transit">50</span> km/week</span>
+                                    </div>
+                                    <input type="range" id="slide-transit" min="0" max="400" value="50" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--primary-emerald);">
+                                </div>
+                                <!-- Transportation: Active (Bike/Walk) -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span class="text-secondary">🚲 Active Commutes (Bike/Walk)</span>
+                                        <span style="color: var(--accent-lime); font-weight: 600;"><span id="val-active">10</span> km/week</span>
+                                    </div>
+                                    <input type="range" id="slide-active" min="0" max="100" value="10" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--accent-lime);">
+                                </div>
+                                <!-- Transportation: Flights -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span class="text-secondary">✈️ Air Travel / Flights</span>
+                                        <span style="color: var(--warning); font-weight: 600;"><span id="val-flight">12</span> hours/year</span>
+                                    </div>
+                                    <input type="range" id="slide-flight" min="0" max="100" value="12" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--warning);">
+                                </div>
+                                <!-- Utilities: Electricity -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span class="text-secondary">💡 Monthly Electricity Usage</span>
+                                        <span style="color: var(--secondary-cyan); font-weight: 600;"><span id="val-elec">250</span> kWh</span>
+                                    </div>
+                                    <input type="range" id="slide-elec" min="50" max="1200" value="250" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--secondary-cyan);">
+                                </div>
+                                <!-- Utilities: Water -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span class="text-secondary">💧 Daily Water Usage</span>
+                                        <span style="color: var(--primary-emerald); font-weight: 600;"><span id="val-water">150</span> Liters</span>
+                                    </div>
+                                    <input type="range" id="slide-water" min="20" max="500" value="150" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--primary-emerald);">
+                                </div>
+                                <!-- Lifestyle: Food/Diet -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span class="text-secondary">🍔 Diet Carbon Type</span>
+                                        <span id="label-diet" style="color: var(--accent-lime); font-weight: 600;">Average (Mixed)</span>
+                                    </div>
+                                    <input type="range" id="slide-diet" min="1" max="4" value="2" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--accent-lime);">
+                                </div>
+                                <!-- Lifestyle: Shopping Spend -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span class="text-secondary">🛍️ Monthly Shopping Outlays</span>
+                                        <span style="color: var(--warning); font-weight: 600;">$<span id="val-shopping">200</span></span>
+                                    </div>
+                                    <input type="range" id="slide-shopping" min="0" max="1500" step="50" value="200" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--warning);">
+                                </div>
+                                <!-- Lifestyle: Plastic Usage -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span class="text-secondary">🥤 Single-Use Plastics</span>
+                                        <span style="color: var(--danger); font-weight: 600;"><span id="val-plastic">10</span> items/week</span>
+                                    </div>
+                                    <input type="range" id="slide-plastic" min="0" max="80" value="10" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--danger);">
+                                </div>
+                                <!-- Lifestyle: Internet Usage -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span class="text-secondary">🌐 Daily Active Screen Time</span>
+                                        <span style="color: var(--secondary-cyan); font-weight: 600;"><span id="val-internet">6</span> hours</span>
+                                    </div>
+                                    <input type="range" id="slide-internet" min="1" max="18" value="6" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--secondary-cyan);">
+                                </div>
+                                <!-- Lifestyle: Home Appliances -->
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span class="text-secondary">🔌 Active High-Power Appliances</span>
+                                        <span style="color: var(--warning); font-weight: 600;"><span id="val-appliances">3</span> devices</span>
+                                    </div>
+                                    <input type="range" id="slide-appliances" min="0" max="10" value="3" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--warning);">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Carbon Hotspot & Chart breakdown column -->
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            
+                            <!-- Diagnostic summary score -->
+                            <div class="card" style="display: flex; flex-direction: column; gap: 12px;">
+                                <h3>Detective Hotspot Diagnostic</h3>
+                                <div style="text-align: center; padding: 15px 0; background: rgba(0,0,0,0.15); border-radius: 16px; border: 1px solid var(--border-color);">
+                                    <span class="text-secondary" style="font-size: 0.7rem; display: block; text-transform: uppercase; letter-spacing: 0.05em;"><span id="lbl-scope-title">Yearly</span> Footprint Output</span>
+                                    <div style="font-size: 2.4rem; font-family: var(--font-number); font-weight: 700; color: #fff; line-height: 1.1;"><span id="detective-total">4.8</span> <span style="font-size: 1rem; font-weight: normal; color: var(--text-secondary);">Tons CO₂</span></div>
+                                </div>
+                                
+                                <div id="card-hotspot" style="padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 93, 115, 0.2); background: rgba(255, 93, 115, 0.03); display: flex; align-items: flex-start; gap: 10px; margin-top: 5px;">
+                                    <span style="font-size: 1.2rem;">⚠️</span>
+                                    <div>
+                                        <h4 style="font-size: 0.8rem; font-weight: 600; color: var(--danger); margin-bottom: 2px;">Highest Hotspot: <span id="lbl-hotspot-name">Driving Commuting</span></h4>
+                                        <p id="lbl-hotspot-desc" style="font-size: 0.7rem; color: var(--text-secondary); line-height: 1.3;">Checking...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Breakdown chart card -->
+                            <div class="card" style="height: 250px; display: flex; flex-direction: column; gap: 8px;">
+                                <h3>Footprint Breakdown</h3>
+                                <div style="flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center;">
+                                    <canvas id="chart-detective-breakdown" style="max-height: 180px;"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Stored History and Save button -->
+                            <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <h3 style="font-size: 0.9rem;">Footprint Logging History</h3>
+                                    <button class="btn btn-primary" onclick="logFootprintHistory()" style="padding: 4px 10px; font-size: 0.75rem;">Log Current Stats</button>
+                                </div>
+                                <div style="max-height: 100px; overflow-y: auto; scrollbar-width: thin;" id="footprint-history-list">
+                                    <p class="text-secondary" style="font-size: 0.7rem; text-align: center; padding: 10px 0;">No calculation history logs stored yet.</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-VIEW 2: RECEIPT ANALYZER -->
+                <div id="sub-tool-receipt" class="tool-subview" style="display: none;">
+                    <div class="card">
+                        <h3>Green Receipt Analyzer</h3>
+                        <p class="text-secondary" style="margin-bottom: 20px;">Upload a copy of your shopping receipt or drag list inputs to analyze food offsets and alternatives.</p>
+                        
+                        <div id="receipt-drag-area" style="border: 2px dashed var(--border-color); border-radius: 12px; padding: 40px; text-align: center; color: var(--text-secondary); cursor: pointer;"
+                             ondragover="event.preventDefault()" ondrop="handleReceiptDrop(event)" onclick="document.getElementById('receipt-file').click()">
+                            Drag & Drop Grocery Receipts Here to Analyze (PET bottles, grocery lists, beef steak lines...)
+                            <input type="file" id="receipt-file" style="display: none;" onchange="handleReceiptFile(event)">
+                        </div>
+
+                        <!-- Analysis results table -->
+                        <div id="receipt-results-container" style="display: none; margin-top: 30px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 20px;">
+                                <div>
+                                    <h3 style="font-size: 1.1rem;">Receipt Impact Breakdown</h3>
+                                    <span style="font-size: 0.75rem; color: var(--text-secondary);">Highest Carbon Hotspot: <strong id="rec-hotspot" style="color: var(--danger);">Beef Steak</strong></span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--accent-lime); font-family: var(--font-number);"><span id="rec-total-carbon">11.6</span> kg CO₂</div>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">Shopping Grade: <strong id="rec-grade" style="color: var(--warning);">D</strong></span>
+                                </div>
+                            </div>
+
+                            <table class="receipt-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-secondary); height: 40px;">
+                                        <th style="padding: 10px 0;">Item Name</th>
+                                        <th>Category</th>
+                                        <th>Carbon Footprint</th>
+                                        <th>Green Alternative Recommendation</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="receipt-table-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-VIEW 3: RECYCLING GUIDE -->
+                <div id="sub-tool-guide" class="tool-subview" style="display: none;">
+                    <div class="card">
+                        <h3>Interactive Recycling Guide</h3>
+                        <p class="text-secondary" style="margin-bottom: 20px;">Quick-reference catalog explaining plastic resin numbers (1-7) and common waste preparation methods.</p>
+                        
+                        <!-- Search Box -->
+                        <div style="margin-bottom: 25px; display: flex; gap: 10px;">
+                            <input type="text" id="guide-search-input" placeholder="Search any waste item (e.g. laptop, phone, plastic bottle, battery, glass)..." style="flex: 1; background: #112018; border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 12px; outline: none; font-size: 0.85rem;" onkeypress="handleGuideSearchKey(event)">
+                            <button class="btn btn-primary" onclick="searchGuideItem()" style="padding: 10px 20px; font-size: 0.85rem; border-radius: 12px;">Search Item</button>
+                        </div>
+                        
+                        <!-- Search Result Display Box -->
+                        <div id="guide-search-result" style="display: none; padding: 20px; background: rgba(0, 212, 255, 0.03); border: 1px solid rgba(0, 212, 255, 0.15); border-radius: 16px; margin-bottom: 25px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; margin-bottom: 12px;">
+                                <h4 style="font-size: 1rem; color: #fff;" id="guide-res-title">PET Plastic Bottle</h4>
+                                <span class="reward-tag" id="guide-res-recyclable" style="background: rgba(61,220,132,0.15); color: var(--accent-lime);">Recyclable</span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; line-height: 1.4;">
+                                <div><strong class="text-secondary">Category:</strong> <span id="guide-res-category">Plastic</span></div>
+                                <div><strong class="text-secondary">Disposal Suggestion:</strong> <span id="guide-res-disposal">Rinse cap and throw in Blue Curbside Bin.</span></div>
+                                <div><strong class="text-secondary">Reuse Ideas:</strong> <span id="guide-res-reuse">Use as a seed starter container.</span></div>
+                                <div><strong class="text-secondary">Environmental Impact:</strong> <span id="guide-res-impact">Prevents 0.08kg CO₂ emissions.</span></div>
+                            </div>
+                        </div>
+
+                        <div class="recycling-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+                            <!-- Code 1 -->
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.6rem; color: var(--primary-emerald); font-weight: bold; margin-bottom: 5px;">♻️ 1</div>
+                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">PET / PETE</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Polyester soda bottles, water jars. High recycling rate. Please rinse.</p>
+                                <span class="reward-tag reward-xp" style="margin-top: 8px; display: inline-block;">Highly Recyclable</span>
+                            </div>
+                            <!-- Code 2 -->
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.6rem; color: var(--primary-emerald); font-weight: bold; margin-bottom: 5px;">♻️ 2</div>
+                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">HDPE</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Milk jugs, detergent bottles, shampoo tubes. Highly recyclable.</p>
+                                <span class="reward-tag reward-xp" style="margin-top: 8px; display: inline-block;">Highly Recyclable</span>
+                            </div>
+                            <!-- Code 3 -->
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.6rem; color: var(--warning); font-weight: bold; margin-bottom: 5px;">♻️ 3</div>
+                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">PVC</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Pipes, vinyl wraps, toys. Contain toxins. Rarely recycled locally.</p>
+                                <span class="reward-tag reward-coins" style="margin-top: 8px; display: inline-block; background: rgba(255, 93, 115, 0.1); color: var(--danger);">Rarely Recyclable</span>
+                            </div>
+                            <!-- Code 4 -->
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.6rem; color: var(--secondary-cyan); font-weight: bold; margin-bottom: 5px;">♻️ 4</div>
+                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">LDPE</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Squeeze bottles, shopping bags, shrink wrap. Special drop-off needed.</p>
+                                <span class="reward-tag reward-coins" style="margin-top: 8px; display: inline-block;">Special Recycle</span>
+                            </div>
+                            <!-- Code 5 -->
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.6rem; color: var(--primary-emerald); font-weight: bold; margin-bottom: 5px;">♻️ 5</div>
+                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">PP</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Yogurt tubs, medicine bottles, caps. Accepted in some curbside programs.</p>
+                                <span class="reward-tag reward-xp" style="margin-top: 8px; display: inline-block;">Recyclable</span>
+                            </div>
+                            <!-- Code 6 -->
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.6rem; color: var(--warning); font-weight: bold; margin-bottom: 5px;">♻️ 6</div>
+                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">PS (Polystyrene)</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Styrofoam cups, takeout boxes. Toxic chemicals. Avoid if possible.</p>
+                                <span class="reward-tag reward-coins" style="margin-top: 8px; display: inline-block; background: rgba(255, 93, 115, 0.1); color: var(--danger);">Avoid / Do Not Recycle</span>
+                            </div>
+                            <!-- Code 7 -->
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.6rem; color: var(--warning); font-weight: bold; margin-bottom: 5px;">♻️ 7</div>
+                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">OTHER</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Fiberglass, acrylic, composites, mixed resin. Cannot be recycled.</p>
+                                <span class="reward-tag reward-coins" style="margin-top: 8px; display: inline-block; background: rgba(255, 93, 115, 0.1); color: var(--danger);">Non-Recyclable</span>
+                            </div>
+                            <!-- Compost -->
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.6rem; color: var(--accent-lime); font-weight: bold; margin-bottom: 5px;">🥬 ORGANIC</div>
+                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">Compost Heap</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Food scraps, coffee grounds, garden weeds. Diverts methane loads.</p>
+                                <span class="reward-tag reward-xp" style="margin-top: 8px; display: inline-block; background: rgba(199, 254, 115, 0.15); color: var(--accent-lime);">Highly Compostable</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- ==========================================
+                 ECO PASSPORT VIEW
+                 ========================================== -->
+            <div id="view-passport" style="display: none; padding: 40px; width: 100%;">
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px;">
+                    
+                    <!-- Passport booklet container -->
+                    <div class="card passport-book" style="perspective: 1000px; display: flex; flex-direction: column; gap: 15px; position: relative;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;">
+                            <div>
+                                <h2 style="font-size: 1.4rem; color: var(--primary-emerald);">Eco Passport</h2>
+                                <p class="text-secondary" style="font-size: 0.8rem;">Your certified stamps of global environmental actions</p>
+                            </div>
+                            <!-- Download PDF button using print -->
+                            <button class="btn btn-primary" onclick="window.print()" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">Download PDF 📥</button>
+                        </div>
+                        
+                        <!-- Animated book page content -->
+                        <div class="passport-page" id="passport-page-content" style="background: #112018; border: 1px solid var(--border-color); border-radius: 16px; padding: 30px; min-height: 380px; display: flex; flex-direction: column; justify-content: space-between; transform-style: preserve-3d; transition: transform 0.6s;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                                    <div>
+                                        <span style="font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">Bearer Name</span>
+                                        <h4 id="pass-name" style="font-size: 1.1rem; font-weight: 600; color: #fff;">Demo User</h4>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <span style="font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">Steward Level</span>
+                                        <h4 id="pass-level" style="font-size: 1.1rem; font-weight: 600; color: var(--accent-lime);">Level 4</h4>
+                                    </div>
+                                </div>
+                                
+                                <!-- Stamps Grid (Circular badges matching completed items) -->
+                                <span style="font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; display: block; margin-bottom: 10px;">Eco Stamps Earned</span>
+                                <div class="stamps-grid" id="passport-stamps" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                                    <!-- Stamp elements populated dynamically -->
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 12px;">
+                                <span>EcoSphere Document #ES-9284</span>
+                                <span>Page 1 of 2</span>
+                              </div>
+                          </div>
+                      </div>
+
+                      <!-- Timeline of achievements -->
+                      <div class="card" style="display: flex; flex-direction: column; gap: 20px;">
+                          <h3>Stamping Timeline</h3>
+                          <p class="text-secondary" style="font-size: 0.8rem;">Historical log of your unlocked passport stamps and certifications:</p>
+                          
+                          <div class="timeline-list" id="passport-timeline" style="display: flex; flex-direction: column; gap: 15px; border-left: 2px solid rgba(61,220,132,0.1); padding-left: 20px; margin-left: 10px;">
+                              <!-- Dynamic timeline items -->
+                          </div>
+                      </div>
+
+                  </div>
+              </div>
             
         </main>
     </div>

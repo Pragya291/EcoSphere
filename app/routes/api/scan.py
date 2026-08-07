@@ -101,3 +101,42 @@ def get_scan_history():
     # Sort scans by scanned_at DESC
     scans.sort(key=lambda s: s.get('scanned_at', ''), reverse=True)
     return jsonify(scans[:10]) # Return last 10 scans
+
+@api_bp.route('/scan/receipt', methods=['POST'])
+@login_required
+def scan_receipt():
+    """
+    Scans a shopping receipt. Accepts file upload ('file') or base64.
+    Returns itemized carbon footprints and alternatives.
+    """
+    user_id = request.form.get('user_id', 'demo_user')
+    image_bytes = None
+    filename = ""
+    
+    if 'file' in request.files:
+        uploaded_file = request.files['file']
+        filename = uploaded_file.filename
+        image_bytes = uploaded_file.read()
+    else:
+        data = request.get_json() or {}
+        image_b64 = data.get('image')
+        filename = data.get('filename', 'receipt.jpg')
+        if image_b64:
+            import base64
+            try:
+                image_bytes = base64.b64decode(image_b64.split(",")[-1])
+            except Exception:
+                pass
+                
+    from app.services.openai_service import analyze_receipt
+    result = analyze_receipt(image_bytes, filename)
+    
+    from app.services.gamification import add_rewards
+    updated_profile = add_rewards(user_id, score_delta=5, xp_delta=10, coins_delta=10)
+    
+    return jsonify({
+        "success": True,
+        "result": result,
+        "profile": updated_profile
+    })
+

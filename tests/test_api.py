@@ -127,3 +127,19 @@ def test_scan_waste(client):
     data = json.loads(response.data)
     assert data['success'] is True
     assert data['scan']['material'] == "PET Plastic Bottle"
+
+def test_scan_receipt(client):
+    """Test scanning a grocery receipt."""
+    response = client.post('/api/scan/receipt', json={
+        'user_id': 'test_suite_user',
+        'image': 'data:image/jpeg;base64,dGVzdHJlY2VpcHQ=',  # dummy base64
+        'filename': 'grocery_receipt.jpg'
+    })
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['success'] is True
+    assert 'result' in data
+    assert 'items' in data['result']
+    assert len(data['result']['items']) > 0
+    assert 'total_carbon' in data['result']
+
