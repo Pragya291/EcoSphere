@@ -1,0 +1,6 @@
+﻿flask
+python-dotenv
+firebase-admin
+openai
+requests
+pytest
