@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoSphere AI — Every Green Action Shapes Tomorrow</title>
+    <meta name="description" content="EcoSphere AI is a premium, venture-backed-style AI sustainability companion that helps you track carbon metrics, analyze waste, and build an evolving digital ecosystem.">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- ==========================================
+         CINEMATIC LANDING VIEW
+         ========================================== -->
+    <div id="landing-view" class="landing-view">
+        <canvas id="landing-canvas"></canvas>
+        
+        <nav class="landing-nav">
+            <div class="brand">
+                <div class="brand-icon">E</div>
+                <span>EcoSphere AI</span>
+            </div>
+            <div>
+                <button class="btn btn-secondary" onclick="toggleScreenReaderAnnounce('Accessibility settings can be toggled using the bottom panel in the dashboard.')">Sponsors</button>
+            </div>
+        </nav>
+
+        <div class="landing-hero">
+            <div class="hero-badge">🏆 Hackathon Prototype Edition</div>
+            <h1>Every Green Action<br>Shapes Tomorrow</h1>
+            <p>An AI-powered sustainability companion helping you reduce carbon footprints, scan waste categories, and nurture an evolving living digital ecosystem.</p>
+            
+            <div class="hero-ctas">
+                <button class="btn btn-primary" id="btn-start" onclick="startJourney()">
+                    Start Your Journey
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+                <button class="btn btn-secondary" onclick="triggerToast('Watch Demo video coming soon!', 'info')">
+                    Watch Live Demo
+                </button>
+            </div>
+
+            <!-- Floating Interactive Globe Visual -->
+            <div class="hero-visual">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="0.5" stroke-dasharray="2,2"/>
+                    <!-- Simple map contours representing continents -->
+                    <path d="M 25 40 Q 30 25 50 30 T 70 35 T 80 50 T 60 70 T 35 60 Z" fill="none" stroke="currentColor" stroke-width="1"/>
+                    <path d="M 40 45 Q 45 48 50 45 T 60 48" fill="none" stroke="currentColor" stroke-width="0.75"/>
+                    <circle cx="50" cy="50" r="1" fill="currentColor"/>
+                    <circle cx="65" cy="40" r="1.5" fill="currentColor"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         AUTHENTICATION VIEW CONTAINER
+         ========================================== -->
+    <div id="auth-view" class="landing-view hidden" style="background: radial-gradient(circle at 50% 30%, #0d1e16 0%, #08120d 80%); justify-content: center; align-items: center;">
+        <div class="card" id="auth-card" style="width: 100%; max-width: 450px; padding: 40px; border-radius: 24px; position: relative;">
+            <button class="modal-close" onclick="exitAuthView()" style="top: 15px; right: 20px;">×</button>
+            
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div class="brand-icon" style="margin: 0 auto 12px; width: 45px; height: 45px; font-size: 1.3rem;">E</div>
+                <h2 id="auth-title" style="font-size: 1.8rem; background: linear-gradient(to right, #ffffff, #8beab0); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Sign In to EcoSphere</h2>
+                <p id="auth-subtitle" class="text-secondary" style="font-size: 0.85rem; margin-top: 6px;">Enter your credentials to access your Eco Dashboard</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="form-login" onsubmit="submitLogin(event)" style="display: flex; flex-direction: column; gap: 18px;">
+                <div class="form-group">
+                    <label for="login-email" class="form-label" style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">Email Address</label>
+                    <input type="email" id="login-email" class="chat-input" placeholder="name@domain.com" required style="width: 100%;">
+                </div>
+                
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label for="login-pass" class="form-label" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0;">Password</label>
+                        <a href="#" onclick="showForgotPassword()" style="font-size: 0.75rem; color: var(--secondary-cyan);">Forgot password?</a>
+                    </div>
+                    <input type="password" id="login-pass" class="chat-input" placeholder="••••••••" required style="width: 100%;">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+                    Access Dashboard
+                </button>
+                
+                <p class="text-secondary" style="font-size: 0.8rem; text-align: center; margin-top: 10px;">
+                    Don't have an account? <a href="#" onclick="toggleAuthMode('register')" style="color: var(--primary-emerald); font-weight: 500;">Create account</a>
+                </p>
+            </form>
+
+            <!-- Registration Form -->
+            <form id="form-register" onsubmit="submitRegister(event)" style="display: none; flex-direction: column; gap: 18px;">
+                <div class="form-group">
+                    <label for="register-name" class="form-label" style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">Full Name</label>
+                    <input type="text" id="register-name" class="chat-input" placeholder="Jane Doe" required style="width: 100%;">
+                </div>
+
+                <div class="form-group">
+                    <label for="register-email" class="form-label" style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">Email Address</label>
+                    <input type="email" id="register-email" class="chat-input" placeholder="name@domain.com" required style="width: 100%;">
+                </div>
+                
+                <div class="form-group">
+                    <label for="register-pass" class="form-label" style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">Password</label>
+                    <input type="password" id="register-pass" class="chat-input" placeholder="Min. 6 characters" required oninput="evaluatePasswordStrength(this.value)" style="width: 100%;">
+                    
+                    <!-- Password strength indicator -->
+                    <div style="margin-top: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 4px;">
+                            <span>Strength: <strong id="pass-strength-label" style="color: var(--danger);">Weak</strong></span>
+                        </div>
+                        <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden;">
+                            <div id="pass-strength-bar" style="width: 0%; height: 100%; background: var(--danger); transition: var(--transition-smooth);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+                    Nurture Your EcoSphere
+                </button>
+                
+                <p class="text-secondary" style="font-size: 0.8rem; text-align: center; margin-top: 10px;">
+                    Already have an account? <a href="#" onclick="toggleAuthMode('login')" style="color: var(--primary-emerald); font-weight: 500;">Sign in instead</a>
+                </p>
+            </form>
+
+            <!-- Forgot Password Form -->
+            <form id="form-forgot" onsubmit="submitForgotPasswordForm(event)" style="display: none; flex-direction: column; gap: 18px;">
+                <div class="form-group">
+                    <label for="forgot-email" class="form-label" style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">Email Address</label>
+                    <input type="email" id="forgot-email" class="chat-input" placeholder="name@domain.com" required style="width: 100%;">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+                    Send Reset Link
+                </button>
+                
+                <p class="text-secondary" style="font-size: 0.8rem; text-align: center; margin-top: 10px;">
+                    Remember your password? <a href="#" onclick="toggleAuthMode('login')" style="color: var(--primary-emerald); font-weight: 500;">Sign in instead</a>
+                </p>
+            </form>
+
+
+            <!-- Social Logins Separator -->
+            <div style="display: flex; align-items: center; text-align: center; margin: 25px 0 20px; color: var(--text-muted); font-size: 0.75rem;">
+                <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.05);"></div>
+                <span style="margin: 0 10px;">OR SECURE SIGN IN</span>
+                <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.05);"></div>
+            </div>
+
+            <!-- Social Buttons -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <button class="btn btn-secondary" onclick="socialLogin('Google')" style="font-size: 0.8rem; justify-content: center; height: 42px;">
+                    Google
+                </button>
+                <button class="btn btn-secondary" onclick="socialLogin('GitHub')" style="font-size: 0.8rem; justify-content: center; height: 42px;">
+                    GitHub
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         SAAS DASHBOARD CONTAINER
+         ========================================== -->
+    <div id="dashboard-view" class="app-container" style="display: none;">
+        
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">E</div>
+                <span>EcoSphere AI</span>
+            </div>
+            
+            <nav style="flex: 1;">
+                <ul class="nav-menu">
+                    <li class="nav-item active" id="menu-dashboard">
+                        <a href="#" onclick="switchView('dashboard')">
+                            <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item" id="menu-scanner">
+                        <a href="#" onclick="switchView('scanner')">
+                            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            AI Scanner
+                        </a>
+                    </li>
+                    <li class="nav-item" id="menu-analytics">
+                        <a href="#" onclick="switchView('analytics')">
+                            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item" id="menu-marketplace">
+                        <a href="#" onclick="switchView('marketplace')">
+                            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                            Marketplace
+                        </a>
+                    </li>
+                    <li class="nav-item" id="menu-community">
+                        <a href="#" onclick="switchView('community')">
+                            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            Community
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <!-- ACCESSIBILITY CONTROL PANEL -->
+            <div class="sidebar-footer">
+                <div class="access-panel">
+                    <h4>Accessibility</h4>
+                    <div class="access-controls">
+                        <!-- High Contrast -->
+                        <button class="btn-access" id="btn-contrast" onclick="toggleContrastMode()" aria-label="Toggle High Contrast">
+                            🌓
+                            <span class="tooltip">Contrast</span>
+                        </button>
+                        <!-- Large Font Size -->
+                        <button class="btn-access" id="btn-fontsize" onclick="toggleLargeText()" aria-label="Toggle Large Font Size">
+                            A+
+                            <span class="tooltip">Font Size</span>
+                        </button>
+                        <!-- Color Blind Mode -->
+                        <button class="btn-access" id="btn-colorblind" onclick="toggleColorblindMode()" aria-label="Toggle Colorblind Filter">
+                            👁️
+                            <span class="tooltip">Color Blind</span>
+                        </button>
+                        <!-- Screen Reader TTS Mode -->
+                        <button class="btn-access" id="btn-screenreader" onclick="toggleScreenReader()" aria-label="Toggle Screen Reader Simulation">
+                            🔊
+                            <span class="tooltip">Voice Assist</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN LAYOUT DISPLAY -->
+        <main class="main-content">
+            
+            <!-- TOP NAV STATS BAR -->
+            <header class="top-nav">
+                <div class="nav-left">
+                    <h2 id="section-title">Eco Dashboard</h2>
+                </div>
+                
+                <div class="nav-right">
+                    <!-- Weekly Streak -->
+                    <div class="user-badge" title="Daily streak multiplier">
+                        <span class="streak-counter">🔥 <span id="lbl-streak">6</span> Day Streak</span>
+                    </div>
+                    
+                    <!-- Eco Coins -->
+                    <div class="user-badge" title="Earned Eco Coins balance">
+                        <span class="coin-counter">🪙 <span id="lbl-coins">450</span> Eco Coins</span>
+                    </div>
+                    
+                    <!-- XP / Level Badge -->
+                    <div class="user-badge">
+                        <span class="text-secondary" style="font-size: 0.85rem; margin-right: 4px;">LVL</span>
+                        <span id="lbl-level" class="user-level">4</span>
+                    </div>
+                    
+                    <!-- Username Display -->
+                    <div class="user-badge" id="btn-user-profile" title="Logged in user profile" style="cursor: pointer;" onclick="toggleLogoutBtn()">
+                        <span id="lbl-username" style="font-weight: 500; font-size: 0.85rem; color: #fff;">Demo User</span>
+                    </div>
+                    
+                    <!-- Logout action -->
+                    <button class="btn btn-secondary" id="btn-logout" onclick="submitLogout()" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 20px; display: none;">
+                        Logout
+                    </button>
+                </div>
+            </header>
+
+            <!-- ==========================================
+                 DASHBOARD COMPONENT VIEW
+                 ========================================== -->
+            <div id="view-dashboard" class="dashboard-grid">
+                
+                <div class="dashboard-main">
+                    <!-- KPI Score Row -->
+                    <section class="kpi-row">
+                        <!-- Circular Green Score Gauge Card -->
+                        <div class="card kpi-card glass-shine" id="card-greenscore">
+                            <div class="kpi-header">
+                                <span>Green Score</span>
+                                <span>🏆 Rank #4</span>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
+                                <div class="kpi-value" id="lbl-greenscore">745</div>
+                                <!-- Gauge SVG representation -->
+                                <svg width="50" height="50" viewBox="0 0 36 36">
+                                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#182d23" stroke-width="3"/>
+                                    <path id="gauge-circle" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--primary-emerald)" stroke-width="3.5" stroke-dasharray="74.5, 100"/>
+                                </svg>
+                            </div>
+                            <div class="kpi-footer">
+                                <span class="trend-up">↑ 1.2%</span> than last week
+                            </div>
+                        </div>
+
+                        <!-- Carbon Saved KPI -->
+                        <div class="card kpi-card">
+                            <div class="kpi-header">
+                                <span>Carbon Saved</span>
+                                <span>CO₂</span>
+                            </div>
+                            <div class="kpi-value"><span id="lbl-co2-saved">14.8</span><span style="font-size: 1rem; font-weight: normal; color: var(--text-secondary); margin-left: 4px;">kg</span></div>
+                            <div class="kpi-footer">
+                                Equivalent to 1.4 trees planted
+                            </div>
+                        </div>
+
+                        <!-- Energy Saved KPI -->
+                        <div class="card kpi-card">
+                            <div class="kpi-header">
+                                <span>Energy Saved</span>
+                                <span>⚡</span>
+                            </div>
+                            <div class="kpi-value"><span id="lbl-energy-saved">42.5</span><span style="font-size: 1rem; font-weight: normal; color: var(--text-secondary); margin-left: 4px;">kWh</span></div>
+                            <div class="kpi-footer">
+                                Prevents coal power utility loads
+                            </div>
+                        </div>
+
+                        <!-- Water Saved KPI -->
+                        <div class="card kpi-card">
+                            <div class="kpi-header">
+                                <span>Water Saved</span>
+                                <span>💧</span>
+                            </div>
+                            <div class="kpi-value"><span id="lbl-water-saved">160</span><span style="font-size: 1rem; font-weight: normal; color: var(--text-secondary); margin-left: 4px;">Liters</span></div>
+                            <div class="kpi-footer">
+                                Short shower and tap logs
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Living EcoSphere Evolving Canvas Card -->
+                    <section class="card ecosphere-container">
+                        <div class="ecosphere-header">
+                            <div>
+                                <h3>Living EcoSphere</h3>
+                                <p class="text-secondary" style="font-size: 0.8rem;">Your digital forest evolves as your Green Score rises</p>
+                            </div>
+                            <div class="stage-badge">Evolution Phase: <strong id="lbl-phase">Wildlife</strong></div>
+                        </div>
+                        
+                        <div id="ecosphere-stage" class="ecosphere-stage">
+                            <!-- Weather selectors floating inside the stage -->
+                            <div class="weather-controls">
+                                <button class="btn-weather" id="btn-wind" onclick="toggleWeather('wind')" aria-label="Toggle wind effect">💨</button>
+                                <button class="btn-weather" id="btn-rain" onclick="toggleWeather('rain')" aria-label="Toggle rain effect">🌧️</button>
+                                <button class="btn-weather" id="btn-night" onclick="toggleWeather('night')" aria-label="Toggle night mode">🌙</button>
+                            </div>
+                            <!-- Canvas containing SVG tree, fireflies, wind particles, clouds -->
+                            <canvas id="ecosphere-canvas" class="ecosphere-canvas"></canvas>
+                        </div>
+                    </section>
+
+                    <!-- AI Sustainability Twin Forecast comparing trajectories -->
+                    <section class="twin-container">
+                        <div class="card twin-card">
+                            <h3>AI Sustainability Twin</h3>
+                            <p class="text-secondary" style="font-size: 0.8rem;">Projected carbon trajectory comparing your potential habits</p>
+                            
+                            <div class="twin-comparison">
+                                <div class="compare-row">
+                                    <div class="compare-label">
+                                        <span class="compare-dot" style="background-color: var(--secondary-cyan);"></span>
+                                        <span>Current Track</span>
+                                    </div>
+                                    <div class="compare-val"><span id="twin-val-current">2,920</span> kg CO₂/yr</div>
+                                </div>
+                                <div class="compare-row" style="background: rgba(61, 220, 132, 0.05); border: 1px solid rgba(61,220,132,0.15)">
+                                    <div class="compare-label">
+                                        <span class="compare-dot" style="background-color: var(--primary-emerald);"></span>
+                                        <span>Future Green You</span>
+                                    </div>
+                                    <div class="compare-val" style="color: var(--primary-emerald);"><span id="twin-val-green">1,095</span> kg CO₂/yr</div>
+                                </div>
+                                <div class="compare-row">
+                                    <div class="compare-label">
+                                        <span class="compare-dot" style="background-color: var(--danger);"></span>
+                                        <span>Future High Carbon You</span>
+                                    </div>
+                                    <div class="compare-val" style="color: var(--danger);"><span id="twin-val-high">5,840</span> kg CO₂/yr</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini Chart mapping predictions -->
+                        <div class="card" style="display: flex; flex-direction: column;">
+                            <h3>Forecast timeline</h3>
+                            <div class="twin-projection-chart">
+                                <canvas id="chart-twin-projection"></canvas>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- RIGHT SMART PANEL -->
+                <aside class="right-panel">
+                    
+                    <!-- Daily Missions Checklist -->
+                    <div class="card">
+                        <h3 style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <span>Daily Missions</span>
+                            <span id="lbl-missions-completed" style="font-size: 0.8rem; color: var(--accent-lime);">0/4 Done</span>
+                        </h3>
+                        <div class="missions-list" id="missions-container">
+                            <div class="skeleton" style="height: 60px; border-radius: 12px;"></div>
+                            <div class="skeleton" style="height: 60px; border-radius: 12px; margin-top: 10px;"></div>
+                            <div class="skeleton" style="height: 60px; border-radius: 12px; margin-top: 10px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- AI Eco Coach Chat widget preview -->
+                    <div class="card coach-container">
+                        <h3>AI Eco Coach</h3>
+                        <p class="text-secondary" style="font-size: 0.8rem; margin-bottom: 12px;">Floating sustainability mentor. Ask anything.</p>
+                        
+                        <div class="chat-history" id="chat-history">
+                            <div class="chat-bubble coach">
+                                Hello! Ask me how to optimize your compost pile or how to prevent vampire energy losses.
+                            </div>
+                        </div>
+                        
+                        <div class="chat-input-area">
+                            <input type="text" id="chat-input" class="chat-input" placeholder="Type eco question..." onkeypress="handleChatKey(event)">
+                            <button class="btn-mic" id="btn-mic" onclick="toggleSpeechRecog()" aria-label="Toggle Microphone Input">🎤</button>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+
+            <!-- ==========================================
+                 AI SCANNER COMPONENT VIEW
+                 ========================================== -->
+            <div id="view-scanner" style="display: none; padding: 40px; max-width: 900px; margin: 0 auto; width:100%;">
+                <div class="card">
+                    <h2 style="margin-bottom: 10px;">AI Waste Analyzer</h2>
+                    <p class="text-secondary" style="margin-bottom: 30px;">Upload an image or trigger your camera device to classify recyclables, evaluate decomposition rate, and offset carbon.</p>
+                    
+                    <div class="scanner-viewport">
+                        <video id="camera-feed" class="camera-feed" autoplay playsinline></video>
+                        <div class="scanner-laser" id="scanner-laser"></div>
+                        <div class="scanner-overlay" id="scanner-overlay">
+                            <span>📷</span>
+                            <p>Camera Stream Offline</p>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Please connect device or drag files below</span>
+                        </div>
+                    </div>
+
+                    <div class="scan-controls" style="margin-bottom: 30px; justify-content: center;">
+                        <button class="btn btn-primary" id="btn-capture" onclick="startCamera()" style="display: inline-flex;">Start Live Camera</button>
+                        <button class="btn btn-secondary" id="btn-snap" onclick="capturePhoto()" style="display: none;">Capture Photo</button>
+                        <input type="file" id="file-uploader" style="display: none;" onchange="handleFileUpload(event)">
+                        <button class="btn btn-secondary" onclick="document.getElementById('file-uploader').click()">Upload Waste Photo</button>
+                    </div>
+
+                    <!-- Scan Drag area -->
+                    <div id="drag-area" style="border: 2px dashed var(--border-color); border-radius: 12px; padding: 30px; text-align: center; color: var(--text-secondary); cursor: pointer;"
+                         ondragover="event.preventDefault()" ondrop="handleFileDrop(event)" onclick="document.getElementById('file-uploader').click()">
+                        Drag & Drop Waste Images Here to Scan (PET Bottles, Aluminum cans, compost elements...)
+                    </div>
+                </div>
+
+                <!-- Last Scan Results Card -->
+                <div class="card" id="card-scan-results" style="display: none; margin-top: 30px;">
+                    <h3>Analysis Result</h3>
+                    <div class="scan-result-details">
+                        <div class="detail-row">
+                            <span class="detail-lbl">Detected Material</span>
+                            <span class="detail-val" id="res-material" style="color: var(--primary-emerald); font-weight: bold;">Plastic Bottle</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-lbl">Decomposition Time</span>
+                            <span class="detail-val" id="res-decomp">450 Years</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-lbl">CO₂ Impact Avoided</span>
+                            <span class="detail-val" id="res-co2" style="color: var(--primary-emerald);">-0.083 kg CO₂</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-lbl">Recyclable?</span>
+                            <span class="detail-val" id="res-recyclable">Yes</span>
+                        </div>
+                        <div class="detail-row" style="flex-direction: column; align-items: flex-start;">
+                            <span class="detail-lbl" style="margin-bottom: 4px;">AI Reuse Suggestions:</span>
+                            <ul id="res-reuse" style="margin-left: 20px; font-size: 0.85rem; color: var(--text-secondary);">
+                                <li>Cut in half to plant seeds.</li>
+                            </ul>
+                        </div>
+                        <div class="detail-row" style="flex-direction: column; align-items: flex-start;">
+                            <span class="detail-lbl" style="margin-bottom: 4px;">XP & Coins Awarded:</span>
+                            <span class="detail-val" id="res-reward" style="color: var(--accent-lime); font-family: var(--font-number); font-size: 1.1rem;">+50 XP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 ANALYTICS VIEW
+                 ========================================== -->
+            <div id="view-analytics" style="display: none; padding: 40px; width: 100%;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <div class="card" style="height: 350px;">
+                        <h3>Weekly Emissions Heatmap</h3>
+                        <p class="text-secondary" style="font-size: 0.8rem; margin-bottom: 20px;">Avoided emissions vs actual footprint</p>
+                        <div style="height: 250px;"><canvas id="chart-analytics-trends"></canvas></div>
+                    </div>
+                    <div class="card" style="height: 350px;">
+                        <h3>Footprint breakdown</h3>
+                        <p class="text-secondary" style="font-size: 0.8rem; margin-bottom: 20px;">Avoided impact grouped by activity sector</p>
+                        <div style="height: 250px; display: flex; align-items: center; justify-content: center;"><canvas id="chart-analytics-sectors"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Manual activity Logger -->
+                <div class="card" style="margin-top: 40px;">
+                    <h3>Log Manual Green Activity</h3>
+                    <p class="text-secondary" style="font-size: 0.8rem; margin-bottom: 20px;">Logging daily sustainable habits updates the carbon calculator scorecard immediately.</p>
+                    <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                        <div>
+                            <label class="text-secondary" style="font-size: 0.8rem; display: block; margin-bottom: 6px;">Activity Type</label>
+                            <select id="log-activity" style="background: #112018; border: 1px solid var(--border-color); color: #fff; padding: 10px; border-radius: 8px; outline: none;">
+                                <option value="short_shower">Short Shower under 5 mins (Water saved)</option>
+                                <option value="bike_or_walk">Walk or Cycle Commute (Bypass car driving km)</option>
+                                <option value="recycle_paper">Recycled paper packaging weight (kg)</option>
+                                <option value="save_electricity">Unplugged standby chargers (kWh estimation)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-secondary" style="font-size: 0.8rem; display: block; margin-bottom: 6px;">Metric quantity</label>
+                            <input type="number" id="log-qty" value="1" min="0.1" step="0.1" style="background: #112018; border: 1px solid var(--border-color); color: #fff; padding: 10px; border-radius: 8px; width: 100px; outline: none;">
+                        </div>
+                        <button class="btn btn-primary" onclick="logManualActivity()" style="margin-top: 24px;">Log & Recalculate</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 MARKETPLACE VIEW
+                 ========================================== -->
+            <div id="view-marketplace" style="display: none; padding: 40px; width: 100%;">
+                <div style="margin-bottom: 30px;">
+                    <h2>Eco Marketplace</h2>
+                    <p class="text-secondary">Redeem your earned Eco Coins for validated carbon removal programs, tree planting campaigns, or premium themes.</p>
+                </div>
+                <div class="marketplace-grid" id="marketplace-container">
+                    <!-- Cards will be dynamically rendered here -->
+                    <div class="skeleton" style="height: 220px; border-radius: 20px;"></div>
+                    <div class="skeleton" style="height: 220px; border-radius: 20px;"></div>
+                    <div class="skeleton" style="height: 220px; border-radius: 20px;"></div>
+                    <div class="skeleton" style="height: 220px; border-radius: 20px;"></div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 COMMUNITY VIEW
+                 ========================================== -->
+            <div id="view-community" style="display: none; padding: 40px; width:100%;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                    <!-- Leaderboards -->
+                    <div class="card">
+                        <h3>Green Leaderboards</h3>
+                        <div class="leaderboard-tabs">
+                            <span class="lead-tab active" id="tab-global" onclick="switchLeaderboard('global')">Global Users</span>
+                            <span class="lead-tab" id="tab-uni" onclick="switchLeaderboard('uni')">Universities</span>
+                        </div>
+                        <div class="leaderboard-list" id="leaderboard-container">
+                            <div class="skeleton" style="height: 50px; border-radius: 12px;"></div>
+                            <div class="skeleton" style="height: 50px; border-radius: 12px; margin-top: 10px;"></div>
+                            <div class="skeleton" style="height: 50px; border-radius: 12px; margin-top: 10px;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Feed -->
+                    <div class="card">
+                        <h3>Eco Feed</h3>
+                        <p class="text-secondary" style="font-size: 0.8rem; margin-bottom: 25px;">Live actions posted by sustainability advocates</p>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                                    <strong style="color: var(--primary-emerald);">@elena_v</strong>
+                                    <span class="text-muted">10m ago</span>
+                                </div>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary);">Just scanned an old laptop battery. Diverted it to the campus e-waste recycling bins. +150 XP! 🔋</p>
+                            </div>
+                            <div style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                                    <strong style="color: var(--secondary-cyan);">@oxford_clean</strong>
+                                    <span class="text-muted">1h ago</span>
+                                </div>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary);">We just unlocked the "Tree Plantation Grove" community tier! Over 500 trees sponsored by students this quarter. 🌳</p>
+                            </div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+                                    <strong style="color: var(--primary-emerald);">@nature_steward</strong>
+                                    <span class="text-muted">4h ago</span>
+                                </div>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary);">Swapped 3 commute routes this week for cycle rides. Bypassed 36km of carbon emission output. feels great.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <!-- ==========================================
+         POPUP MODALS & ANNOUNCERS
+         ========================================== -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-box" id="modal-box">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <h2 id="modal-title" style="color: var(--primary-emerald); margin-bottom: 15px;">Achievement Unlocked!</h2>
+            <div id="modal-body">
+                <p>Congratulations, you earned a reward.</p>
+            </div>
+            <button class="btn btn-primary" onclick="closeModal()" style="margin-top: 20px; width: 100%; justify-content: center;">Continue</button>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Speech Synthesis / Voice feedback container (Invisible screen reader helper) -->
+    <div id="speech-feedback" class="sr-only" aria-live="assertive" style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;"></div>
+
+    <!-- ==========================================
+         APPLICATION SCRIPTS
+         ========================================== -->
+    <script src="/static/js/app.js"></script>
+
+</body>
+</html>
