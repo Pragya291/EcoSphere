@@ -382,7 +382,7 @@
                     <section class="twin-container">
                         <div class="card twin-card">
                             <h3>AI Sustainability Twin</h3>
-                            <p class="text-secondary" style="font-size: 0.8rem;">Projected carbon trajectory comparing your potential habits</p>
+                            <p class="text-secondary" style="font-size: 0.75rem;">Projected carbon trajectory comparing your potential habits</p>
                             
                             <div class="twin-comparison">
                                 <div class="compare-row">
@@ -409,27 +409,11 @@
                             </div>
                         </div>
 
-                        <!-- Mini Chart mapping predictions -->
+                        <!-- Forecast timeline Chart -->
                         <div class="card" style="display: flex; flex-direction: column;">
-                            <h3>Forecast timeline</h3>
+                            <h3 style="font-size: 0.95rem; margin-bottom: 8px;">Forecast timeline</h3>
                             <div class="twin-projection-chart">
                                 <canvas id="chart-twin-projection"></canvas>
-                            </div>
-                        <!-- Daily Eco Tips Card -->
-                        <div class="card" style="display: flex; flex-direction: column; gap: 15px; margin-top: 30px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <h3>💡 Daily Eco Tip</h3>
-                                <span class="reward-tag" id="tip-category" style="background: rgba(0, 212, 255, 0.15); color: var(--secondary-cyan);">Energy</span>
-                            </div>
-                            <p id="tip-content" style="font-size: 0.9rem; line-height: 1.4; color: #fff; font-style: italic;">"Shutting down standby current to idle electronics prevents vampire loads."</p>
-                            
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                                <div style="display: flex; gap: 12px;">
-                                    <button class="btn-weather" onclick="favoriteTip()" aria-label="Favorite tip">⭐</button>
-                                    <button class="btn-weather" onclick="saveTip()" aria-label="Save tip">💾</button>
-                                    <button class="btn-weather" onclick="shareTip()" aria-label="Share tip">📢</button>
-                                </div>
-                                <button class="btn btn-secondary" onclick="loadRandomTip()" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">Next Tip 🔄</button>
                             </div>
                         </div>
                     </section>
@@ -440,38 +424,55 @@
                     
                     <!-- Daily Missions Checklist -->
                     <div class="card">
-                        <h3 style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin-bottom: 10px; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center;">
                             <span>Daily Missions</span>
-                            <span id="lbl-missions-completed" style="font-size: 0.8rem; color: var(--accent-lime);">0/4 Done</span>
+                            <span id="lbl-missions-completed" style="font-size: 0.75rem; color: var(--accent-lime);">0/4 Done</span>
                         </h3>
                         <div class="missions-list" id="missions-container">
-                            <div class="skeleton" style="height: 60px; border-radius: 12px;"></div>
-                            <div class="skeleton" style="height: 60px; border-radius: 12px; margin-top: 10px;"></div>
-                            <div class="skeleton" style="height: 60px; border-radius: 12px; margin-top: 10px;"></div>
+                            <div class="skeleton" style="height: 50px; border-radius: 10px;"></div>
+                            <div class="skeleton" style="height: 50px; border-radius: 10px; margin-top: 8px;"></div>
+                            <div class="skeleton" style="height: 50px; border-radius: 10px; margin-top: 8px;"></div>
                         </div>
                     </div>
 
-                    <!-- Evolving Eco Achievements -->
-                    <div class="card achievements-card" style="display: flex; flex-direction: column; gap: 12px;">
-                        <h3 style="display: flex; align-items: center; gap: 8px;">
-                            <span>🏆 Eco Achievements</span>
-                        </h3>
-                        <p class="text-secondary" style="font-size: 0.8rem;">Your sustainability milestones and badges:</p>
-                        
-                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">
-                            <div style="display: flex; align-items: center; gap: 12px; padding: 10px; background: rgba(61,220,132,0.03); border: 1px solid rgba(61,220,132,0.1); border-radius: 12px;">
-                                <span style="font-size: 1.5rem;">🌱</span>
-                                <div>
-                                    <h4 style="font-size: 0.85rem; font-weight: 600; color: #fff;">Eco Catalyst</h4>
-                                    <p style="font-size: 0.7rem; color: var(--text-secondary);">Unlocked at Level 4</p>
-                                </div>
+                    <!-- Daily Eco Tip Card -->
+                    <div class="card" style="display: flex; flex-direction: column; gap: 8px; overflow: visible;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="font-size: 0.9rem;">💡 Daily Eco Tip</h3>
+                            <span class="reward-tag reward-coins" id="tip-category" style="font-size: 0.65rem; padding: 2px 8px; border-radius: 20px;">Energy</span>
+                        </div>
+                        <p id="tip-content" style="font-size: 0.78rem; line-height: 1.4; color: var(--text-secondary); font-style: italic; margin: 0;">"Shutting down standby current to idle electronics prevents vampire loads."</p>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 2px;">
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="favoriteTip()" aria-label="Favorite" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 4px 8px; color: #fff; cursor: pointer; font-size: 0.75rem;">⭐ Save</button>
+                                <button onclick="shareTip()" aria-label="Share" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 4px 8px; color: #fff; cursor: pointer; font-size: 0.75rem;">📢 Share</button>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 12px; padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; opacity: 0.5;">
-                                <span style="font-size: 1.5rem;">🌳</span>
-                                <div>
-                                    <h4 style="font-size: 0.85rem; font-weight: 600; color: #fff;">Canopy Warden</h4>
-                                    <p style="font-size: 0.7rem; color: var(--text-secondary);">Unlocks at Level 10</p>
-                                </div>
+                            <button onclick="loadRandomTip()" style="background: rgba(61,220,132,0.1); border: 1px solid rgba(61,220,132,0.25); border-radius: 6px; padding: 4px 10px; color: var(--primary-emerald); cursor: pointer; font-size: 0.75rem; font-weight: 600;">Next 🔄</button>
+                        </div>
+                    </div>
+
+                    <!-- Eco Achievements -->
+                    <div class="card" style="display: flex; flex-direction: column; gap: 8px; overflow: visible;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <h3 style="font-size: 0.9rem;">🏆 Achievements</h3>
+                            <span style="font-size: 0.65rem; color: var(--text-muted);">1/2 Unlocked</span>
+                        </div>
+                        
+                        <!-- Unlocked Badge -->
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: rgba(61,220,132,0.06); border: 1px solid rgba(61,220,132,0.2); border-radius: 10px;">
+                            <span style="font-size: 1.4rem; flex-shrink: 0;">🌱</span>
+                            <div style="min-width: 0;">
+                                <div style="font-size: 0.82rem; font-weight: 600; color: var(--primary-emerald);">Eco Catalyst</div>
+                                <div style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 1px;">✓ Unlocked · Level 4</div>
+                            </div>
+                        </div>
+
+                        <!-- Locked Badge -->
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px;">
+                            <span style="font-size: 1.4rem; flex-shrink: 0; opacity: 0.4;">🌳</span>
+                            <div style="min-width: 0;">
+                                <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary);">Canopy Warden</div>
+                                <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 1px;">🔒 Locked · Level 10</div>
                             </div>
                         </div>
                     </div>
