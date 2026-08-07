@@ -166,7 +166,7 @@ function animateLandingCanvas() {
 // ==========================================
 function switchView(viewName) {
   // Hide all view panels
-  const views = ['dashboard', 'scanner', 'analytics', 'marketplace', 'community', 'tools', 'passport'];
+  const views = ['dashboard', 'scanner', 'analytics', 'marketplace', 'community', 'tools', 'passport', 'profile'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
     if (el) el.style.display = "none";
@@ -190,9 +190,10 @@ function switchView(viewName) {
     'marketplace': 'Eco Marketplace',
     'community': 'Global Eco Community',
     'tools': 'Eco Detective & Guide',
-    'passport': 'Eco Passport Booklet'
+    'passport': 'Eco Passport Booklet',
+    'profile': 'My Profile'
   };
-  document.getElementById("section-title").textContent = titleMap[viewName];
+  document.getElementById("section-title").textContent = titleMap[viewName] || viewName;
   
   // Specific view loaders
   if (viewName === 'scanner') {
@@ -211,6 +212,10 @@ function switchView(viewName) {
   
   if (viewName === 'passport') {
     renderPassport();
+  }
+  
+  if (viewName === 'profile') {
+    loadProfile();
   }
   
   announceAccessibility(`Navigating to ${titleMap[viewName]} panel.`);
@@ -2497,5 +2502,215 @@ function renderPassport() {
   }
 }
 
+// ==========================================
+// PROFILE OVERVIEW
+// ==========================================
 
+// Local storage key for editable profile fields
+const PROFILE_STORAGE_KEY = 'ecosphere_profile_meta';
 
+function loadProfile() {
+  // Use live state data + session info + stored editable fields
+  const p = state.profile;
+  const stored = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || '{}');
+
+  // Fetch session user data to get name/email
+  fetch('/api/auth/me')
+    .then(r => r.json())
+    .then(data => {
+      const user = data.user || {};
+      updateProfileUI(p, user, stored);
+    })
+    .catch(() => {
+      updateProfileUI(p, {}, stored);
+    });
+}
+
+function updateProfileUI(p, user, stored) {
+  // --- Name, email, username ---
+  const name = stored.name || user.name || 'Eco User';
+  const email = stored.email || user.email || '—';
+  const initial = name.trim()[0]?.toUpperCase() || '?';
+
+  setText('profile-name', name);
+  setText('profile-email', email);
+  setText('profile-username', '@' + name.toLowerCase().replace(/\s+/g, '_') + '_eco');
+  setText('profile-country', stored.country || 'India');
+  setText('profile-city', stored.city || 'New Delhi');
+  setText('profile-goal', stored.goal || '"Reduce my household carbon footprint by 40% through conscious daily habits."');
+
+  // Avatar initial
+  const avatarEl = document.getElementById('profile-avatar');
+  if (avatarEl) avatarEl.textContent = stored.avatar || initial;
+
+  // --- Member since ---
+  const since = stored.member_since || new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  setText('profile-member-since', since);
+
+  // --- Green Score ---
+  const score = p.green_score || 745;
+  setText('profile-stat-score', score);
+  const gauge = document.getElementById('profile-gauge');
+  if (gauge) {
+    const pct = Math.min((score / 1000) * 100, 100);
+    gauge.setAttribute('stroke-dasharray', `${pct.toFixed(1)},100`);
+    // also update the inner label
+    const wrap = gauge.closest('div');
+    const inner = wrap?.querySelector('div');
+    if (inner) inner.textContent = score;
+  }
+
+  // --- Carbon / streak ---
+  const carbonKg = ((score / 1000) * 14.8 * (score / 745)).toFixed(1);
+  setText('profile-stat-carbon', carbonKg);
+  document.getElementById('profile-stat-carbon').innerHTML =
+    `${carbonKg}<span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;"> kg</span>`;
+
+  const streak = p.streak || 6;
+  setText('profile-stat-streak', streak);
+  document.getElementById('profile-stat-streak').innerHTML =
+    `${streak}<span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;"> days</span>`;
+
+  // --- Eco Level ---
+  const level = p.level || 4;
+  const xp    = p.xp    || 3820;
+  const nextXP  = p.next_level_xp || 4000;
+  const baseXP  = p.current_level_base_xp || 3000;
+  const pctXP   = Math.min(Math.round(((xp - baseXP) / (nextXP - baseXP)) * 100), 100);
+  const xpNeeded = Math.max(nextXP - xp, 0);
+
+  const ecoLevelName = level <= 3 ? '🌱 Beginner' : level <= 7 ? '🌿 Green Hero' : '🛡️ Planet Protector';
+  const badgeText    = level <= 3 ? '🌱 Beginner'  : level <= 7 ? '🌿 Green Hero'  : '🛡️ Planet Protector';
+
+  setText('profile-eco-level', `${ecoLevelName}`);
+  document.getElementById('profile-eco-level').innerHTML =
+    `${ecoLevelName} <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">· Level ${level}</span>`;
+  setText('profile-level-badge', badgeText);
+  setText('profile-xp-needed', `${xpNeeded.toLocaleString()} XP`);
+  setText('profile-xp-current', `${xp.toLocaleString()} XP`);
+  setText('profile-xp-max', `${nextXP.toLocaleString()} XP`);
+
+  const xpBar = document.getElementById('profile-xp-bar');
+  if (xpBar) setTimeout(() => xpBar.style.width = `${pctXP}%`, 100);
+
+  // Highlight the correct milestone tile
+  const tiles = document.querySelectorAll('#view-profile .card [style*="grid-template-columns:repeat(3"] > div');
+  tiles.forEach((t, i) => {
+    const isActive = (i === 0 && level <= 3) || (i === 1 && level >= 4 && level <= 7) || (i === 2 && level >= 8);
+    t.style.opacity = isActive ? '1' : '0.45';
+  });
+
+  // --- Rank ---
+  const rank = p.rank || 4;
+  setText('profile-rank-global', `#${rank}`);
+
+  // --- Detailed metrics ---
+  const energy = Math.round(42.5 * (score / 745));
+  const water  = Math.round(160  * (score / 745));
+  const coins  = p.coins || 450;
+  const completed = (p.completed_challenges || []).length;
+  const total = 4;
+
+  setText('profile-energy', `${energy} kWh`);
+  setText('profile-water',  `${water} L`);
+  setText('profile-coins',  coins);
+  setText('profile-co2',    `${carbonKg} kg`);
+  setText('profile-missions', `${completed} / ${total}`);
+  setText('profile-phase',  p.phase || 'Wildlife');
+
+  // --- Heatmap ---
+  renderHeatmap(streak);
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function renderHeatmap(streak) {
+  const container = document.getElementById('profile-heatmap');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const WEEKS = 12;
+  const DAYS  = 7;
+
+  for (let w = 0; w < WEEKS; w++) {
+    const weekDiv = document.createElement('div');
+    weekDiv.className = 'heatmap-week';
+
+    for (let d = 0; d < DAYS; d++) {
+      const cell = document.createElement('div');
+      // Simulate activity: recent weeks more active
+      const totalDaysAgo = (WEEKS - 1 - w) * 7 + (DAYS - 1 - d);
+      let level = 0;
+      if (totalDaysAgo < streak) {
+        level = 4; // active streak days
+      } else if (totalDaysAgo < streak + 4) {
+        level = Math.floor(Math.random() * 2) + 1;
+      } else {
+        // random historical activity
+        const r = Math.random();
+        level = r > 0.6 ? 0 : r > 0.35 ? 1 : r > 0.18 ? 2 : r > 0.07 ? 3 : 4;
+      }
+      cell.className = `heatmap-cell heatmap-${level}`;
+      cell.title = `${totalDaysAgo} days ago`;
+      weekDiv.appendChild(cell);
+    }
+    container.appendChild(weekDiv);
+  }
+}
+
+function openEditProfile() {
+  const stored = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || '{}');
+  document.getElementById('edit-name').value    = stored.name    || document.getElementById('profile-name')?.textContent    || '';
+  document.getElementById('edit-country').value = stored.country || document.getElementById('profile-country')?.textContent || '';
+  document.getElementById('edit-city').value    = stored.city    || document.getElementById('profile-city')?.textContent    || '';
+  document.getElementById('edit-goal').value    = stored.goal    || '';
+
+  const modal = document.getElementById('profile-edit-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+function closeEditProfile() {
+  const modal = document.getElementById('profile-edit-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function saveProfileEdits() {
+  const name    = document.getElementById('edit-name').value.trim();
+  const country = document.getElementById('edit-country').value.trim();
+  const city    = document.getElementById('edit-city').value.trim();
+  const goal    = document.getElementById('edit-goal').value.trim();
+
+  const stored = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || '{}');
+  if (name)    stored.name    = name;
+  if (country) stored.country = country;
+  if (city)    stored.city    = city;
+  if (goal)    stored.goal    = `"${goal.replace(/^"|"$/g, '')}"`;
+  stored.member_since = stored.member_since || new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(stored));
+  closeEditProfile();
+  loadProfile();
+  triggerToast('Profile updated successfully!', 'success');
+}
+
+function changeAvatar() {
+  const emojis = ['🌿','🌱','🌳','🌻','🦋','🐸','🦜','🌊','⚡','🔋','🌎','♻️'];
+  const stored = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || '{}');
+  const current = stored.avatar;
+  const currentIdx = emojis.indexOf(current);
+  const next = emojis[(currentIdx + 1) % emojis.length];
+  stored.avatar = next;
+  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(stored));
+  const avatarEl = document.getElementById('profile-avatar');
+  if (avatarEl) {
+    avatarEl.style.transform = 'scale(1.2)';
+    avatarEl.textContent = next;
+    setTimeout(() => avatarEl.style.transform = '', 200);
+  }
+  triggerToast(`Avatar changed to ${next}`, 'success');
+}
