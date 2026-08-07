@@ -16,9 +16,13 @@ def client():
         yield client
 
 def test_index_page(client):
-    """Test landing page renders successfully."""
+    """Test landing page renders successfully with dynamic firebase_config."""
     response = client.get('/')
     assert response.status_code == 200
+    html = response.data.decode('utf-8')
+    assert 'const firebaseConfig =' in html
+    assert 'AIzaSyDS6AaESI2nrgJSHh4png_R0s-o6juqTAc' not in html
+
 
 def test_score_endpoints(client):
     """Test retrieving and updating green scores."""

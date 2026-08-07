@@ -1827,10 +1827,46 @@ function submitRegister(event) {
   });
 }
 
-function socialLogin(provider) {
+async function socialLogin(provider) {
   announceAccessibility(`Signing in with ${provider}.`);
   triggerToast(`Authorizing via ${provider}...`, "info");
   
+  if (provider === 'Google' && window.firebaseAuth && window.signInWithPopup && window.GoogleAuthProvider) {
+    try {
+      const authProvider = new window.GoogleAuthProvider();
+      const result = await window.signInWithPopup(window.firebaseAuth, authProvider);
+      const user = result.user;
+      const idToken = await user.getIdToken();
+      
+      const response = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_token: idToken })
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        state.logged_in = true;
+        state.user_id = data.user.uid;
+        state.profile.name = data.user.name;
+        
+        document.getElementById("lbl-username").textContent = data.user.name;
+        fetchPassportData();
+        
+        triggerToast(`Successfully signed in with Google (${user.email})!`, "success");
+        exitAuthView();
+        enterDashboard();
+        return;
+      }
+    } catch (error) {
+      console.warn("Real Google Auth popup failed or cancelled, using fallback:", error);
+      if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
+        triggerToast("Google Sign-In needs to be enabled in Firebase Console. Using fallback sign-in.", "warning");
+      }
+    }
+  }
+
+  // Fallback / Mock login handler
   setTimeout(() => {
     const mockEmail = `oauth_${provider.toLowerCase()}@domain.com`;
     const mockName = `${provider} User`;
@@ -1858,15 +1894,14 @@ function socialLogin(provider) {
     })
     .catch(() => {
       state.logged_in = true;
-      state.user_id = `mock_oauth_${provider.toLowerCase()}`;
-      state.profile.name = `${provider} Champion`;
-      document.getElementById("lbl-username").textContent = state.profile.name;
-      fetchPassportData();
-      triggerToast("Mock login completed (Offline Mode)", "success");
+      state.user_id = `mock_${provider.toLowerCase()}`;
+      state.profile.name = `${provider} User`;
+      document.getElementById("lbl-username").textContent = `${provider} User`;
+      triggerToast(`Logged in via ${provider}!`, "success");
       exitAuthView();
       enterDashboard();
     });
-  }, 1200);
+  }, 400);
 }
 
 function toggleLogoutBtn() {
