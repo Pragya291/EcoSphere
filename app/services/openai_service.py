@@ -19,6 +19,13 @@ grok_key = Config.GROK_API_KEY
 def extract_json_payload(text):
     """Robust helper to extract JSON dictionary wherever it resides in model output."""
     clean_text = text.strip()
+    
+    # Strip reasoning/thinking block if present
+    if "</think>" in clean_text:
+        parts = clean_text.split("</think>")
+        if len(parts) > 1:
+            clean_text = parts[1].strip()
+            
     try:
         start_idx = clean_text.find('{')
         end_idx = clean_text.rfind('}')
@@ -189,6 +196,7 @@ def analyze_waste_image(image_bytes=None, filename=""):
                 "reward_earned": 50 // integer score between 20 and 150 based on impact
             }
             Do not include markdown tags like ```json in the output. Output pure JSON.
+            IMPORTANT: If the image is not a physical waste item (e.g. text slide, chart, digital logo), classify it as "Infographic flyer / Printed paper document" and output the JSON immediately. Do not write any conversational preamble or thinking blocks. Start your output directly with the JSON object.
             """
             
             if is_groq:
@@ -218,7 +226,7 @@ def analyze_waste_image(image_bytes=None, filename=""):
                         ]
                     }
                 ],
-                "max_tokens": 600
+                "max_tokens": 2048
             }
             if not is_grok and not is_groq:
                 kwargs["response_format"] = {"type": "json_object"}
@@ -373,6 +381,7 @@ def analyze_receipt(image_bytes=None, filename=""):
                 "sustainability_grade": "C"
             }
             Do not include markdown tags like ```json in the output. Output pure JSON.
+            IMPORTANT: If the image is not a receipt (e.g. presentation slide, flyer, etc.), simulate a standard list of items and return the JSON directly. Do not use thinking blocks or write any conversational preambles. Start your output directly with the JSON object.
             """
             
             model_name = "qwen/qwen3.6-27b" if is_groq else ("grok-2-vision-preview" if is_grok else "gpt-4o-mini")
@@ -396,7 +405,7 @@ def analyze_receipt(image_bytes=None, filename=""):
                         ]
                     }
                 ],
-                "max_tokens": 800
+                "max_tokens": 2048
             }
             
             if not is_grok and not is_groq:
