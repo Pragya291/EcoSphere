@@ -16,6 +16,25 @@ except ImportError:
 api_key = Config.OPENAI_API_KEY
 grok_key = Config.GROK_API_KEY
 
+def extract_json_payload(text):
+    """Robust helper to extract JSON dictionary wherever it resides in model output."""
+    clean_text = text.strip()
+    try:
+        start_idx = clean_text.find('{')
+        end_idx = clean_text.rfind('}')
+        if start_idx != -1 and end_idx != -1:
+            json_block = clean_text[start_idx:end_idx+1]
+            return json.loads(json_block)
+    except Exception:
+        pass
+        
+    if clean_text.startswith("```json"):
+        clean_text = clean_text[7:]
+    if clean_text.endswith("```"):
+        clean_text = clean_text[:-3]
+    clean_text = clean_text.strip()
+    return json.loads(clean_text)
+
 client = None
 is_grok = False
 is_groq = False
@@ -173,7 +192,7 @@ def analyze_waste_image(image_bytes=None, filename=""):
             """
             
             if is_groq:
-                model_name = "llama-3.2-11b-vision-preview"
+                model_name = "qwen/qwen3.6-27b"
             elif is_grok:
                 model_name = "grok-2-vision-preview"
             else:
@@ -233,15 +252,7 @@ def analyze_waste_image(image_bytes=None, filename=""):
                 )
                 res_content = response.choices[0].message.content
                 
-            # Grok text can sometimes contain markdown wraps, let's strip if present
-            cleaned_res = res_content.strip()
-            if cleaned_res.startswith("```json"):
-                cleaned_res = cleaned_res[7:]
-            if cleaned_res.endswith("```"):
-                cleaned_res = cleaned_res[:-3]
-            cleaned_res = cleaned_res.strip()
-            
-            return json.loads(cleaned_res)
+            return extract_json_payload(res_content)
         except Exception as e:
             print(f"OpenAI Vision API error: {e}. Falling back to simulation.")
     
@@ -364,7 +375,7 @@ def analyze_receipt(image_bytes=None, filename=""):
             Do not include markdown tags like ```json in the output. Output pure JSON.
             """
             
-            model_name = "llama-3.2-11b-vision-preview" if is_groq else ("grok-2-vision-preview" if is_grok else "gpt-4o-mini")
+            model_name = "qwen/qwen3.6-27b" if is_groq else ("grok-2-vision-preview" if is_grok else "gpt-4o-mini")
             kwargs = {
                 "model": model_name,
                 "messages": [
@@ -419,14 +430,7 @@ def analyze_receipt(image_bytes=None, filename=""):
                 )
                 res_content = response.choices[0].message.content
                 
-            cleaned_res = res_content.strip()
-            if cleaned_res.startswith("```json"):
-                cleaned_res = cleaned_res[7:]
-            if cleaned_res.endswith("```"):
-                cleaned_res = cleaned_res[:-3]
-            cleaned_res = cleaned_res.strip()
-            
-            return json.loads(cleaned_res)
+            return extract_json_payload(res_content)
         except Exception as e:
             print(f"Receipt Vision API error: {e}. Falling back to simulation.")
             
