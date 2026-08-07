@@ -423,20 +423,28 @@
                         </div>
                     </div>
 
-                    <!-- AI Eco Coach Chat widget preview -->
-                    <div class="card coach-container">
-                        <h3>AI Eco Coach</h3>
-                        <p class="text-secondary" style="font-size: 0.8rem; margin-bottom: 12px;">Floating sustainability mentor. Ask anything.</p>
+                    <!-- Evolving Eco Achievements -->
+                    <div class="card achievements-card" style="display: flex; flex-direction: column; gap: 12px;">
+                        <h3 style="display: flex; align-items: center; gap: 8px;">
+                            <span>🏆 Eco Achievements</span>
+                        </h3>
+                        <p class="text-secondary" style="font-size: 0.8rem;">Your sustainability milestones and badges:</p>
                         
-                        <div class="chat-history" id="chat-history">
-                            <div class="chat-bubble coach">
-                                Hello! Ask me how to optimize your compost pile or how to prevent vampire energy losses.
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 10px; background: rgba(61,220,132,0.03); border: 1px solid rgba(61,220,132,0.1); border-radius: 12px;">
+                                <span style="font-size: 1.5rem;">🌱</span>
+                                <div>
+                                    <h4 style="font-size: 0.85rem; font-weight: 600; color: #fff;">Eco Catalyst</h4>
+                                    <p style="font-size: 0.7rem; color: var(--text-secondary);">Unlocked at Level 4</p>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="chat-input-area">
-                            <input type="text" id="chat-input" class="chat-input" placeholder="Type eco question..." onkeypress="handleChatKey(event)">
-                            <button class="btn-mic" id="btn-mic" onclick="toggleSpeechRecog()" aria-label="Toggle Microphone Input">🎤</button>
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; opacity: 0.5;">
+                                <span style="font-size: 1.5rem;">🌳</span>
+                                <div>
+                                    <h4 style="font-size: 0.85rem; font-weight: 600; color: #fff;">Canopy Warden</h4>
+                                    <p style="font-size: 0.7rem; color: var(--text-secondary);">Unlocks at Level 10</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </aside>
@@ -638,6 +646,45 @@
 
     <!-- Speech Synthesis / Voice feedback container (Invisible screen reader helper) -->
     <div id="speech-feedback" class="sr-only" aria-live="assertive" style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;"></div>
+
+    <!-- ==========================================
+         FLOATING AI ECO COACH WIDGET
+         ========================================== -->
+    <div id="floating-coach" class="floating-coach-wrapper" style="display: none;">
+        <!-- Floating FAB Button -->
+        <button class="coach-fab" onclick="toggleFloatingCoachPanel()" aria-label="Toggle AI Eco Coach">
+            🤖
+        </button>
+
+        <!-- Floating Chat Panel -->
+        <div id="floating-coach-panel" class="coach-panel">
+            <div class="coach-panel-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="coach-status"></span>
+                    <div>
+                        <h3 style="font-size: 0.9rem; font-weight: 600;">AI Eco Coach</h3>
+                        <span style="font-size: 0.65rem; color: var(--text-muted);">Always active</span>
+                    </div>
+                </div>
+                <button onclick="toggleFloatingCoachPanel()" style="background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px;">×</button>
+            </div>
+
+            <!-- Scrollable chat history -->
+            <div class="coach-panel-body" id="chat-history">
+                <div class="chat-bubble coach">
+                    Hello! I am your floating sustainability mentor. Ask me how to optimize your carbon offsets, recycle plastic, or conserve energy!
+                </div>
+            </div>
+
+            <!-- Chat input controls -->
+            <div class="coach-panel-footer">
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" class="chat-input" placeholder="Type eco question..." onkeypress="handleChatKey(event)">
+                    <button class="btn-mic" id="btn-mic" onclick="toggleSpeechRecog()" aria-label="Toggle Microphone Input" style="width: 40px; height: 40px;">🎤</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ==========================================
          APPLICATION SCRIPTS

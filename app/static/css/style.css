@@ -799,11 +799,122 @@ a {
 /* ==========================================
    AI ECO COACH CHAT
    ========================================== */
-.coach-container {
-  height: 320px;
+/* Floating Coach Wrapper */
+.floating-coach-wrapper {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1500;
+}
+
+/* Floating Action Button (FAB) */
+.coach-fab {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--secondary-cyan), var(--primary-emerald));
+  border: none;
+  box-shadow: 0 8px 32px rgba(0, 212, 255, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--bg-primary);
+  transition: var(--transition-smooth);
+  position: relative;
+}
+
+.coach-fab:hover {
+  transform: scale(1.1) rotate(10deg);
+  box-shadow: 0 12px 40px rgba(0, 212, 255, 0.5);
+}
+
+/* Pulse Glow Ring */
+.coach-fab::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--secondary-cyan);
+  opacity: 0.6;
+  animation: fabPulse 2s infinite;
+  pointer-events: none;
+}
+
+@keyframes fabPulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* Floating Chat Panel */
+.coach-panel {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  width: 360px;
+  height: 480px;
+  background: rgba(17, 32, 24, 0.95);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  box-shadow: var(--shadow-premium);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  transform: translateY(20px) scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: var(--transition-smooth);
 }
+
+.coach-panel.active {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Panel Header */
+.coach-panel-header {
+  padding: 16px 20px;
+  background: rgba(0, 212, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.coach-status {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary-emerald);
+  margin-right: 2px;
+  box-shadow: 0 0 8px var(--primary-emerald);
+}
+
+/* Panel Body */
+.coach-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+}
+
+/* Panel Footer */
+.coach-panel-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.2);
+}
+
 
 .chat-history {
   flex: 1;

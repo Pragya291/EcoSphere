@@ -51,6 +51,10 @@ function enterDashboard() {
   const dashboard = document.getElementById("dashboard-view");
   dashboard.style.display = "flex";
   
+  // Show floating coach widget
+  const floatCoach = document.getElementById("floating-coach");
+  if (floatCoach) floatCoach.style.display = "block";
+  
   // Trigger screen reader audio
   announceAccessibility("Entering EcoSphere Dashboard. Use keyboard controls or sidebar navigation.");
   
@@ -1805,6 +1809,12 @@ function submitLogout() {
       if (data.success) {
         state.logged_in = false;
         
+        // Hide floating coach widget
+        const floatCoach = document.getElementById("floating-coach");
+        if (floatCoach) floatCoach.style.display = "none";
+        const floatPanel = document.getElementById("floating-coach-panel");
+        if (floatPanel) floatPanel.classList.remove("active");
+        
         const landing = document.getElementById("landing-view");
         landing.classList.remove("hidden");
         
@@ -1824,6 +1834,12 @@ function submitLogout() {
     })
     .catch(() => {
       state.logged_in = false;
+      
+      const floatCoach = document.getElementById("floating-coach");
+      if (floatCoach) floatCoach.style.display = "none";
+      const floatPanel = document.getElementById("floating-coach-panel");
+      if (floatPanel) floatPanel.classList.remove("active");
+      
       document.getElementById("landing-view").classList.remove("hidden");
       document.getElementById("dashboard-view").style.display = "none";
       document.getElementById("btn-logout").style.display = "none";
@@ -1859,3 +1875,17 @@ function submitForgotPasswordForm(event) {
     toggleAuthMode('login');
   });
 }
+
+function toggleFloatingCoachPanel() {
+  const panel = document.getElementById("floating-coach-panel");
+  if (!panel) return;
+  panel.classList.toggle("active");
+  
+  if (panel.classList.contains("active")) {
+    document.getElementById("chat-input").focus();
+    announceAccessibility("AI Eco Coach expanded. Type your sustainability questions.");
+  } else {
+    announceAccessibility("AI Eco Coach collapsed.");
+  }
+}
+

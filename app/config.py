@@ -9,3 +9,4 @@ class Config:
     FIREBASE_PROJECT_ID = os.getenv('FIREBASE_PROJECT_ID')
     FIREBASE_API_KEY = os.getenv('FIREBASE_API_KEY', 'mock-web-api-key')
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    GROK_API_KEY = os.getenv('GROK_API_KEY')

@@ -12,13 +12,35 @@ except ImportError:
     import openai
     HAS_NEW_OPENAI = False
 
-# Initialize OpenAI Client or Legacy Module Configuration
+# Initialize OpenAI Client, Grok Client, or Groq Client
 api_key = Config.OPENAI_API_KEY
+grok_key = Config.GROK_API_KEY
+
 client = None
-if api_key:
+is_grok = False
+is_groq = False
+
+if grok_key:
+    try:
+        if HAS_NEW_OPENAI:
+            if grok_key.strip().startswith("gsk_"):
+                # Groq LPU Endpoint
+                client = OpenAI(api_key=grok_key.strip(), base_url="https://api.groq.com/openai/v1")
+                is_groq = True
+                print("Initialized Groq LPU API client.")
+            else:
+                # xAI Grok Endpoint
+                client = OpenAI(api_key=grok_key.strip(), base_url="https://api.x.ai/v1")
+                is_grok = True
+                print("Initialized xAI Grok API client.")
+    except Exception as e:
+        print(f"Failed to initialize Grok/Groq client: {e}")
+
+if not client and api_key:
     try:
         if HAS_NEW_OPENAI:
             client = OpenAI(api_key=api_key)
+            print("Initialized OpenAI client.")
         else:
             openai.api_key = api_key
             client = "legacy"
@@ -150,30 +172,40 @@ def analyze_waste_image(image_bytes=None, filename=""):
             Do not include markdown tags like ```json in the output. Output pure JSON.
             """
             
-            if HAS_NEW_OPENAI:
-                response = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    response_format={"type": "json_object"},
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": "You are a professional sustainability AI assistant that returns JSON reports."
-                        },
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": prompt},
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": f"data:image/jpeg;base64,{base64_image}"
-                                    }
+            if is_groq:
+                model_name = "llama-3.2-11b-vision-preview"
+            elif is_grok:
+                model_name = "grok-2-vision-preview"
+            else:
+                model_name = "gpt-4o-mini"
+
+            kwargs = {
+                "model": model_name,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are a professional sustainability AI assistant that returns JSON reports."
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{base64_image}"
                                 }
-                            ]
-                        }
-                    ],
-                    max_tokens=600
-                )
+                            }
+                        ]
+                    }
+                ],
+                "max_tokens": 600
+            }
+            if not is_grok and not is_groq:
+                kwargs["response_format"] = {"type": "json_object"}
+
+            if HAS_NEW_OPENAI:
+                response = client.chat.completions.create(**kwargs)
                 res_content = response.choices[0].message.content
             else:
                 # Legacy openai v0.x call
@@ -201,7 +233,15 @@ def analyze_waste_image(image_bytes=None, filename=""):
                 )
                 res_content = response.choices[0].message.content
                 
-            return json.loads(res_content)
+            # Grok text can sometimes contain markdown wraps, let's strip if present
+            cleaned_res = res_content.strip()
+            if cleaned_res.startswith("```json"):
+                cleaned_res = cleaned_res[7:]
+            if cleaned_res.endswith("```"):
+                cleaned_res = cleaned_res[:-3]
+            cleaned_res = cleaned_res.strip()
+            
+            return json.loads(cleaned_res)
         except Exception as e:
             print(f"OpenAI Vision API error: {e}. Falling back to simulation.")
     
@@ -251,9 +291,15 @@ def get_coach_response(chat_history, user_message):
             
             messages.append({"role": "user", "content": user_message})
             
+            if is_groq:
+                chat_model = "llama-3.3-70b-versatile"
+            elif is_grok:
+                chat_model = "grok-beta"
+            else:
+                chat_model = "gpt-4o-mini"
             if HAS_NEW_OPENAI:
                 response = client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model=chat_model,
                     messages=messages,
                     max_tokens=250
                 )
