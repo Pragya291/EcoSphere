@@ -211,7 +211,11 @@ def analyze_waste_image(image_bytes=None, filename=""):
                 "messages": [
                     {
                         "role": "system",
-                        "content": "You are a professional sustainability AI assistant that returns JSON reports."
+                        "content": (
+                            "You are a professional sustainability AI assistant that returns JSON reports. /no_think"
+                            if is_groq else
+                            "You are a professional sustainability AI assistant that returns JSON reports."
+                        )
                     },
                     {
                         "role": "user",
@@ -226,7 +230,7 @@ def analyze_waste_image(image_bytes=None, filename=""):
                         ]
                     }
                 ],
-                "max_tokens": 2048
+                "max_tokens": 800
             }
             if not is_grok and not is_groq:
                 kwargs["response_format"] = {"type": "json_object"}
@@ -390,7 +394,11 @@ def analyze_receipt(image_bytes=None, filename=""):
                 "messages": [
                     {
                         "role": "system",
-                        "content": "You are a professional ESG auditor that returns itemized JSON reports."
+                        "content": (
+                            "You are a professional ESG auditor that returns itemized JSON reports. /no_think"
+                            if is_groq else
+                            "You are a professional ESG auditor that returns itemized JSON reports."
+                        )
                     },
                     {
                         "role": "user",
@@ -405,7 +413,7 @@ def analyze_receipt(image_bytes=None, filename=""):
                         ]
                     }
                 ],
-                "max_tokens": 2048
+                "max_tokens": 800
             }
             
             if not is_grok and not is_groq:

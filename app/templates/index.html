@@ -8,6 +8,27 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Firebase Web SDK Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyDS6AaESI2nrgJSHh4png_R0s-o6juqTAc",
+          authDomain: "ecosphere-e11ea.firebaseapp.com",
+          projectId: "ecosphere-e11ea",
+          storageBucket: "ecosphere-e11ea.firebasestorage.app",
+          messagingSenderId: "821094712810",
+          appId: "1:821094712810:web:34fc5b51fc68bd342c9e93",
+          measurementId: "G-SFM6436ZZ5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        window.firebaseApp = app;
+        console.log("Firebase Web SDK successfully initialized.");
+    </script>
 </head>
 <body>
 

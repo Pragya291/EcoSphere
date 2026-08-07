@@ -161,7 +161,7 @@ def init_firebase():
         except Exception as e:
             print(f"Firebase Admin SDK initialization failed: {e}. Falling back to mock database.")
     else:
-        print(f"Firebase credentials not found or incomplete. Falling back to mock database.")
+        print("[INFO] Running in local Database mode (serviceAccountKey.json not provided).")
     
     return MockFirestoreClient()
 

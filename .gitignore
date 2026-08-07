@@ -9,6 +9,7 @@ env/
 
 # Firebase key
 serviceAccountKey.json
+serviceAccountKey*.json
 *.key.json
 
 # Environment variables
