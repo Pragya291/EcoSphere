@@ -166,7 +166,7 @@ function animateLandingCanvas() {
 // ==========================================
 function switchView(viewName) {
   // Hide all view panels
-  const views = ['dashboard', 'scanner', 'analytics', 'marketplace', 'community', 'tools', 'passport', 'profile'];
+  const views = ['dashboard', 'flow', 'scanner', 'analytics', 'marketplace', 'community', 'tools', 'passport', 'profile'];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
     if (el) el.style.display = "none";
@@ -185,6 +185,7 @@ function switchView(viewName) {
   // Update section title header
   const titleMap = {
     'dashboard': 'Eco Dashboard',
+    'flow': 'Eco Journey Loop',
     'scanner': 'AI Waste Scanner',
     'analytics': 'Footprint Analytics',
     'marketplace': 'Eco Marketplace',
@@ -2800,3 +2801,117 @@ document.addEventListener('keydown', (e) => {
     closeLandingModal();
   }
 });
+
+/* ==========================================
+   ECO JOURNEY MASTER 12-STEP LOOP CONTROLLER
+   ========================================== */
+const ECO_LOOP_STAGES = [
+  { step: 1, name: "1. Carbon Footprint", icon: "👣", view: "analytics", desc: "Calculating personal baseline CO₂ emissions & energy loads." },
+  { step: 2, name: "2. Carbon Detective", icon: "🕵️", view: "tools", desc: "AI Computer Vision analyzes waste items & vampire energy loads." },
+  { step: 3, name: "3. AI Personalized Mission", icon: "🎯", view: "dashboard", desc: "Generating custom micro-habit tasks tailored to your routine." },
+  { step: 4, name: "4. Complete Eco Action", icon: "⚡", view: "dashboard", desc: "Executing verified real-world sustainability action." },
+  { step: 5, name: "5. XP + Green Coins", icon: "🪙", view: "dashboard", desc: "Rewarding +150 XP & +50 Eco Coins." },
+  { step: 6, name: "6. Level Up", icon: "🏆", view: "profile", desc: "Upgrading tier rank and unlocking new ecosystem privileges." },
+  { step: 7, name: "7. Passport Stamp", icon: "🛂", view: "passport", desc: "Minting verifiable milestone stamp into your Eco Passport." },
+  { step: 8, name: "8. Living Garden Evolves", icon: "🪴", view: "dashboard", desc: "3D digital forest grows new foliage and interactive wildlife." },
+  { step: 9, name: "9. Green Score Improves", icon: "📊", view: "dashboard", desc: "Boosting overall sustainability rating gauge (+15 pts)." },
+  { step: 10, name: "10. Future You Prediction", icon: "🔮", view: "dashboard", desc: "AI models project 5-year climate footprint trajectory." },
+  { step: 11, name: "11. Leaderboard", icon: "🥇", view: "community", desc: "Advancing global eco champion rank." },
+  { step: 12, name: "12. New Challenge ↺", icon: "🔄", view: "flow", desc: "Unlocking next tier challenge and restarting cycle ↺." }
+];
+
+let currentLoopStepIndex = 0;
+
+function updateEcoLoopUI() {
+  const currentStage = ECO_LOOP_STAGES[currentLoopStepIndex];
+  
+  // Update dashboard banner header label
+  const labelEl = document.getElementById("lbl-current-loop-stage");
+  if (labelEl) {
+    labelEl.textContent = currentStage.name;
+  }
+
+  // Update mini step pills in banner
+  for (let i = 1; i <= 12; i++) {
+    const miniEl = document.getElementById(`mini-step-${i}`);
+    if (miniEl) {
+      if (i === currentStage.step) {
+        miniEl.classList.add("active");
+      } else {
+        miniEl.classList.remove("active");
+      }
+    }
+  }
+
+  // Update flow view cards if flow view is visible
+  for (let i = 1; i <= 12; i++) {
+    const cardEl = document.getElementById(`flow-step-${i}`);
+    if (cardEl) {
+      if (i === currentStage.step) {
+        cardEl.classList.add("active");
+      } else {
+        cardEl.classList.remove("active");
+      }
+    }
+  }
+}
+
+function advanceEcoLoop() {
+  currentLoopStepIndex = (currentLoopStepIndex + 1) % ECO_LOOP_STAGES.length;
+  const currentStage = ECO_LOOP_STAGES[currentLoopStepIndex];
+  
+  updateEcoLoopUI();
+  triggerToast(`${currentStage.icon} ${currentStage.name}: ${currentStage.desc}`, 'success');
+
+  // Trigger step side effects
+  if (currentStage.step === 5) {
+    state.coins = (state.coins || 450) + 50;
+    state.xp = (state.xp || 1200) + 150;
+    if (typeof updateStatsUI === 'function') updateStatsUI();
+  } else if (currentStage.step === 8) {
+    if (window.addTreeToEcosphere) window.addTreeToEcosphere();
+  } else if (currentStage.step === 9) {
+    state.greenScore = Math.min(1000, (state.greenScore || 745) + 15);
+    if (typeof updateStatsUI === 'function') updateStatsUI();
+  }
+}
+
+function jumpToLoopStep(stepNum) {
+  currentLoopStepIndex = stepNum - 1;
+  const targetStage = ECO_LOOP_STAGES[currentLoopStepIndex];
+  updateEcoLoopUI();
+  triggerToast(`Step ${stepNum}: ${targetStage.name}`, 'info');
+  switchView(targetStage.view);
+}
+
+function runFullEcoLoopSimulation() {
+  triggerToast('⚡ Starting 12-Stage Eco Master Loop Simulation...', 'info');
+  let stepIndex = 0;
+  
+  const interval = setInterval(() => {
+    currentLoopStepIndex = stepIndex;
+    updateEcoLoopUI();
+    const stage = ECO_LOOP_STAGES[stepIndex];
+    triggerToast(`${stage.icon} Step ${stage.step}/12: ${stage.name}`, 'success');
+
+    if (stage.step === 5) {
+      state.coins = (state.coins || 450) + 50;
+      if (typeof updateStatsUI === 'function') updateStatsUI();
+    } else if (stage.step === 8) {
+      if (window.addTreeToEcosphere) window.addTreeToEcosphere();
+    } else if (stage.step === 9) {
+      state.greenScore = Math.min(1000, (state.greenScore || 745) + 15);
+      if (typeof updateStatsUI === 'function') updateStatsUI();
+    }
+
+    stepIndex++;
+    if (stepIndex >= ECO_LOOP_STAGES.length) {
+      clearInterval(interval);
+      setTimeout(() => {
+        triggerToast('🎉 12-Step Eco Master Loop Completed! Restarting cycle ↺', 'success');
+        currentLoopStepIndex = 0;
+        updateEcoLoopUI();
+      }, 800);
+    }
+  }, 1100);
+}

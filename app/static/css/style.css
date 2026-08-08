@@ -1185,10 +1185,10 @@ a {
    DASHBOARD TILES & GRIDS
    ========================================== */
 .dashboard-grid {
-  padding: 12px 18px;
+  padding: 16px 20px;
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 14px;
+  grid-template-columns: 2.1fr 1fr;
+  gap: 18px;
   /* fill remaining height under sticky top-nav */
   flex: 1;
   min-height: 0;
@@ -1198,12 +1198,23 @@ a {
 .dashboard-main {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   overflow-y: auto;
-  padding-right: 4px;
-  padding-bottom: 12px;
+  padding: 6px 8px 20px 4px;
   min-height: 0;
   scrollbar-width: thin;
+}
+
+.eco-loop-banner-card {
+  margin-top: 2px !important;
+  margin-bottom: 8px !important;
+  padding: 22px 26px !important;
+  background: radial-gradient(circle at 50% 0%, #0d2c19 0%, #05160b 100%) !important;
+  border: 1px solid rgba(82, 224, 101, 0.4) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 25px rgba(82, 224, 101, 0.18) !important;
+  border-radius: 20px !important;
+  overflow: visible !important;
+  flex-shrink: 0 !important;
 }
 
 .kpi-row {
@@ -2564,4 +2575,139 @@ button.btn-social-dark:hover {
   height: 100%;
   background: var(--danger, #ef4444);
   transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+/* ==========================================
+   ECO JOURNEY MASTER 12-STEP LOOP STYLES
+   ========================================== */
+.loop-horizontal-track {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.loop-track-step {
+  background: rgba(10, 28, 17, 0.7);
+  border: 1px solid rgba(82, 224, 101, 0.18);
+  border-radius: 10px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.loop-track-step:hover {
+  background: rgba(14, 36, 22, 0.9);
+  border-color: rgba(82, 224, 101, 0.5);
+  transform: translateY(-2px);
+}
+
+.loop-track-step.active {
+  background: linear-gradient(135deg, rgba(82, 224, 101, 0.25) 0%, rgba(14, 40, 24, 0.9) 100%);
+  border-color: #52e065;
+  box-shadow: 0 0 16px rgba(82, 224, 101, 0.35);
+}
+
+.loop-track-step .step-num {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #52e065;
+}
+
+.loop-track-step .step-lbl {
+  font-size: 0.65rem;
+  color: #cbd5e1;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  margin-top: 2px;
+}
+
+/* Full View Flow Sequence Grid (6 Columns x 2 Rows = All 12 Steps Visible!) */
+.flow-sequence-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.flow-step-card {
+  background: rgba(10, 28, 17, 0.75);
+  border: 1px solid rgba(82, 224, 101, 0.22);
+  border-radius: 16px;
+  padding: 14px 12px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.flow-step-card:hover {
+  background: rgba(14, 38, 23, 0.95);
+  border-color: #52e065;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 18px rgba(82, 224, 101, 0.25);
+}
+
+.flow-step-card.active {
+  border-color: #52e065;
+  background: radial-gradient(circle at 50% 0%, #11361e 0%, #061c0d 100%);
+  box-shadow: 0 0 25px rgba(82, 224, 101, 0.4), inset 0 0 12px rgba(82, 224, 101, 0.15);
+}
+
+.flow-step-card .step-badge-num {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #52e065;
+  background: rgba(82, 224, 101, 0.12);
+  border: 1px solid rgba(82, 224, 101, 0.25);
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.flow-step-card .step-icon {
+  font-size: 1.65rem;
+  margin-bottom: 8px;
+}
+
+.flow-step-card h4 {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.flow-step-card p {
+  font-size: 0.74rem;
+  color: #94a3b8;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.flow-step-card .step-arrow-down {
+  margin-top: auto;
+  align-self: flex-end;
+  color: #52e065;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 1280px) {
+  .flow-sequence-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }

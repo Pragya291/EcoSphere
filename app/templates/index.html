@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoSphere AI — Every Green Action Shapes Tomorrow</title>
     <meta name="description" content="EcoSphere AI is a premium, venture-backed-style AI sustainability companion that helps you track carbon metrics, analyze waste, and build an evolving digital ecosystem.">
-    <link rel="stylesheet" href="/static/css/style.css?v=enlarge_no_github_v9">
+    <link rel="stylesheet" href="/static/css/style.css?v=all12steps12">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -555,6 +555,12 @@
                             Dashboard
                         </a>
                     </li>
+                    <li class="nav-item" id="menu-flow">
+                        <a href="#" onclick="switchView('flow')">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                            Eco Journey Loop
+                        </a>
+                    </li>
                     <li class="nav-item" id="menu-scanner">
                         <a href="#" onclick="switchView('scanner')">
                             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -674,6 +680,79 @@
             <div id="view-dashboard" class="dashboard-grid">
                 
                 <div class="dashboard-main">
+                    <!-- Interactive 12-Step Eco Journey Loop Banner -->
+                    <section class="card eco-loop-banner-card">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(82, 224, 101, 0.18); border: 1px solid rgba(82, 224, 101, 0.35); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">🔄</div>
+                                <div>
+                                    <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0; line-height: 1.2;">EcoSphere 12-Stage Master Loop</h3>
+                                    <p style="font-size: 0.82rem; color: #94a3b8; margin: 2px 0 0;">Current Active Phase: <strong id="lbl-current-loop-stage" style="color: #52e065; font-weight: 700;">1. Carbon Footprint</strong></p>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <button class="btn btn-hero-primary" onclick="advanceEcoLoop()" style="height: 38px; padding: 0 18px; font-size: 0.85rem; box-shadow: 0 4px 18px rgba(82, 224, 101, 0.4);">
+                                    <span>▶ Next Step</span>
+                                </button>
+                                <button class="btn btn-secondary" onclick="switchView('flow')" style="height: 38px; padding: 0 16px; font-size: 0.85rem; border: 1px solid rgba(82,224,101,0.35); color: #ffffff; background: rgba(10,28,17,0.8);">
+                                    <span>View Full Loop ↺</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 12 Horizontal Mini Step Indicators -->
+                        <div class="loop-horizontal-track">
+                            <div class="loop-track-step active" id="mini-step-1" title="1. Carbon Footprint" onclick="jumpToLoopStep(1)">
+                                <span class="step-num">1</span>
+                                <span class="step-lbl">Footprint</span>
+                            </div>
+                            <div class="loop-track-step" id="mini-step-2" title="2. Carbon Detective" onclick="jumpToLoopStep(2)">
+                                <span class="step-num">2</span>
+                                <span class="step-lbl">Detective</span>
+                            </div>
+                            <div class="loop-track-step" id="mini-step-3" title="3. AI Personalized Mission" onclick="jumpToLoopStep(3)">
+                                <span class="step-num">3</span>
+                                <span class="step-lbl">Mission</span>
+                            </div>
+                            <div class="loop-track-step" id="mini-step-4" title="4. Complete Eco Action" onclick="jumpToLoopStep(4)">
+                                <span class="step-num">4</span>
+                                <span class="step-lbl">Action</span>
+                            </div>
+                            <div class="loop-track-step" id="mini-step-5" title="5. XP + Green Coins" onclick="jumpToLoopStep(5)">
+                                <span class="step-num">5</span>
+                                <span class="step-lbl">XP & Coins</span>
+                            </div>
+                            <div class="loop-track-step" id="mini-step-6" title="6. Level Up" onclick="jumpToLoopStep(6)">
+                                <span class="step-num">6</span>
+                                <span class="step-lbl">Level Up</span>
+                            </div>
+                            <div class="loop-track-step" id="mini-step-7" title="7. Passport Stamp" onclick="jumpToLoopStep(7)">
+                                <span class="step-num">7</span>
+                                <span class="step-lbl">Stamp</span>
+                            </div>
+                            <div class="loop-track-step" id="mini-step-8" title="8. Living Garden Evolves" onclick="jumpToLoopStep(8)">
+                                <span class="step-num">8</span>
+                                <span class="step-lbl">Garden</span>
+                            </div>
+                            <div class="loop-track-step" id="mini-step-9" title="9. Green Score Improves" onclick="jumpToLoopStep(9)">
+                                <span class="step-num">9</span>
+                                <span class="step-lbl">Score</span>
+                            </div>
+                            <div class="loop-track-step" id="mini-step-10" title="10. Future You Prediction" onclick="jumpToLoopStep(10)">
+                                <span class="step-num">10</span>
+                                <span class="step-lbl">Future You</span>
+                            </div>
+                            <div class="loop-track-step" id="mini-step-11" title="11. Leaderboard" onclick="jumpToLoopStep(11)">
+                                <span class="step-num">11</span>
+                                <span class="step-lbl">Rank</span>
+                            </div>
+                            <div class="loop-track-step" id="mini-step-12" title="12. New Challenge ↺" onclick="jumpToLoopStep(12)">
+                                <span class="step-num">12</span>
+                                <span class="step-lbl">Challenge ↺</span>
+                            </div>
+                        </div>
+                    </section>
+
                     <!-- KPI Score Row -->
                     <section class="kpi-row">
                         <!-- Circular Green Score Gauge Card -->
@@ -853,6 +932,128 @@
                         </div>
                     </div>
                 </aside>
+            </div>
+
+            <!-- ==========================================
+                 ECO JOURNEY GAME LOOP VIEW
+                 ========================================== -->
+            <div id="view-flow" style="display: none; flex-direction: column; gap: 20px; width: 100%; height: calc(100vh - 65px); overflow-y: auto; padding: 24px 30px 40px 30px; box-sizing: border-box;">
+                <div class="card" style="padding: 24px 28px; background: radial-gradient(circle at 50% 0%, #0d2817 0%, #05150a 90%); border: 1px solid rgba(82, 224, 101, 0.35);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+                        <div>
+                            <div class="modal-badge" style="margin-bottom: 8px;">🔄 12-Stage Continuous Cycle</div>
+                            <h2 style="font-size: 1.85rem; font-weight: 800; color: #ffffff;">EcoSphere Master Journey Loop</h2>
+                            <p style="color: #94a3b8; font-size: 0.92rem; margin-top: 4px;">Execute the continuous 12-step cycle to audit emissions, complete AI missions, earn rewards, evolve your 3D living garden, and climb global ranks.</p>
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-hero-primary" onclick="advanceEcoLoop()" style="height: 44px; padding: 0 20px; font-size: 0.9rem;">
+                                <span>▶ Advance Next Step</span>
+                            </button>
+                            <button class="btn btn-secondary" onclick="runFullEcoLoopSimulation()" style="height: 44px; padding: 0 20px; font-size: 0.9rem; border-color: rgba(82,224,101,0.4); color: #52e065;">
+                                <span>⚡ Run Full Loop Cycle</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Flow Diagram Cards Grid -->
+                    <div class="flow-sequence-grid">
+                        <div class="flow-step-card active" id="flow-step-1" onclick="jumpToLoopStep(1)">
+                            <div class="step-badge-num">01</div>
+                            <div class="step-icon">👣</div>
+                            <h4>Carbon Footprint</h4>
+                            <p>Calculate base emissions & utility logs</p>
+                            <div class="step-arrow-down">↓</div>
+                        </div>
+
+                        <div class="flow-step-card" id="flow-step-2" onclick="jumpToLoopStep(2)">
+                            <div class="step-badge-num">02</div>
+                            <div class="step-icon">🕵️</div>
+                            <h4>Carbon Detective</h4>
+                            <p>AI computer vision scans waste & energy</p>
+                            <div class="step-arrow-down">↓</div>
+                        </div>
+
+                        <div class="flow-step-card" id="flow-step-3" onclick="jumpToLoopStep(3)">
+                            <div class="step-badge-num">03</div>
+                            <div class="step-icon">🎯</div>
+                            <h4>AI Personalized Mission</h4>
+                            <p>Receive custom daily micro-habits</p>
+                            <div class="step-arrow-down">↓</div>
+                        </div>
+
+                        <div class="flow-step-card" id="flow-step-4" onclick="jumpToLoopStep(4)">
+                            <div class="step-badge-num">04</div>
+                            <div class="step-icon">⚡</div>
+                            <h4>Complete Eco Action</h4>
+                            <p>Log & verify real-world green actions</p>
+                            <div class="step-arrow-down">↓</div>
+                        </div>
+
+                        <div class="flow-step-card" id="flow-step-5" onclick="jumpToLoopStep(5)">
+                            <div class="step-badge-num">05</div>
+                            <div class="step-icon">🪙</div>
+                            <h4>XP + Green Coins</h4>
+                            <p>Earn experience points & token balance</p>
+                            <div class="step-arrow-down">↓</div>
+                        </div>
+
+                        <div class="flow-step-card" id="flow-step-6" onclick="jumpToLoopStep(6)">
+                            <div class="step-badge-num">06</div>
+                            <div class="step-icon">🏆</div>
+                            <h4>Level Up</h4>
+                            <p>Unlock new tier privileges & badges</p>
+                            <div class="step-arrow-down">↓</div>
+                        </div>
+
+                        <div class="flow-step-card" id="flow-step-7" onclick="jumpToLoopStep(7)">
+                            <div class="step-badge-num">07</div>
+                            <div class="step-icon">🛂</div>
+                            <h4>Passport Stamp</h4>
+                            <p>Mint immutable verified eco certificate</p>
+                            <div class="step-arrow-down">↓</div>
+                        </div>
+
+                        <div class="flow-step-card" id="flow-step-8" onclick="jumpToLoopStep(8)">
+                            <div class="step-badge-num">08</div>
+                            <div class="step-icon">🪴</div>
+                            <h4>Living Garden Evolves</h4>
+                            <p>3D digital forest grows new wildlife</p>
+                            <div class="step-arrow-down">↓</div>
+                        </div>
+
+                        <div class="flow-step-card" id="flow-step-9" onclick="jumpToLoopStep(9)">
+                            <div class="step-badge-num">09</div>
+                            <div class="step-icon">📊</div>
+                            <h4>Green Score Improves</h4>
+                            <p>Overall sustainability rating increases</p>
+                            <div class="step-arrow-down">↓</div>
+                        </div>
+
+                        <div class="flow-step-card" id="flow-step-10" onclick="jumpToLoopStep(10)">
+                            <div class="step-badge-num">10</div>
+                            <div class="step-icon">🔮</div>
+                            <h4>Future You Prediction</h4>
+                            <p>AI models project 5-year climate footprint</p>
+                            <div class="step-arrow-down">↓</div>
+                        </div>
+
+                        <div class="flow-step-card" id="flow-step-11" onclick="jumpToLoopStep(11)">
+                            <div class="step-badge-num">11</div>
+                            <div class="step-icon">🥇</div>
+                            <h4>Leaderboard</h4>
+                            <p>Compete globally & climb rankings</p>
+                            <div class="step-arrow-down">↓</div>
+                        </div>
+
+                        <div class="flow-step-card" id="flow-step-12" onclick="jumpToLoopStep(12)">
+                            <div class="step-badge-num">12</div>
+                            <div class="step-icon">🔄</div>
+                            <h4>New Challenge</h4>
+                            <p>Unlock fresh mission & restart cycle ↺</p>
+                            <div class="step-arrow-down">↺</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- ==========================================
