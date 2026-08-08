@@ -202,7 +202,6 @@ function switchView(viewName) {
   
   // Specific view loaders
   if (viewName === 'scanner') {
-    startCamera();
     loadScanHistory();
   } else {
     stopCamera();

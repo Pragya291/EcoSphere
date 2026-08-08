@@ -1095,22 +1095,13 @@
 
                         <div class="scanner-overlay" id="scanner-overlay" style="display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; color:#94a3b8;">
                             <span style="font-size:2.5rem;">📷</span>
-                            <p style="margin:0; font-size:0.9rem; font-weight:700; color:#fff;">Camera Stream Standby</p>
-                            <span style="font-size:0.75rem; color:#64748b;">Click Start Camera or drag &amp; drop photos below</span>
+                            <p style="margin:0; font-size:0.9rem; font-weight:700; color:#fff;">Upload an image to scan</p>
+                            <span style="font-size:0.75rem; color:#64748b;">Drag &amp; drop photos below or use the upload button.</span>
                         </div>
                     </div>
 
                     <!-- Scanner Controls -->
                     <div class="scan-controls" style="margin:16px 0; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-                        <button class="btn btn-primary" id="btn-capture" onclick="startCamera()" style="display:inline-flex; align-items:center; gap:6px;">
-                            <span>📷</span> Start Live Camera
-                        </button>
-                        <button class="btn btn-primary" id="btn-snap" onclick="capturePhoto()" style="display:none; align-items:center; gap:6px;">
-                            <span>📸</span> Capture Photo
-                        </button>
-                        <button class="btn btn-secondary" id="btn-switch-cam" onclick="toggleCameraFacing()" style="display:none; align-items:center; gap:6px;">
-                            <span>🔄</span> Switch Camera
-                        </button>
                         <button class="btn btn-secondary" id="btn-retake" onclick="resetScannerView()" style="display:none; align-items:center; gap:6px;">
                             <span>↻</span> Retake / Scan Again
                         </button>

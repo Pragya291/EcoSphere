@@ -53,7 +53,12 @@ def infer_material_from_text(text):
         item["confidence"] = 0.72
         item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
         return item
-    if "aluminum can" in lower or "soda can" in lower or "metal can" in lower or "can" in lower:
+    if "smartphone" in lower or "phone" in lower or "electronic waste" in lower or "battery" in lower:
+        item = SIMULATED_ITEMS[5].copy()
+        item["confidence"] = 0.72
+        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
+        return item
+    if "aluminum can" in lower or "soda can" in lower or "metal can" in lower or "beer can" in lower or "drinks can" in lower:
         item = SIMULATED_ITEMS[1].copy()
         item["confidence"] = 0.75
         item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
@@ -71,11 +76,6 @@ def infer_material_from_text(text):
     if "glass jar" in lower or "glass bottle" in lower or "glass" in lower:
         item = SIMULATED_ITEMS[4].copy()
         item["confidence"] = 0.76
-        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
-        return item
-    if "smartphone" in lower or "phone" in lower or "electronic waste" in lower or "battery" in lower:
-        item = SIMULATED_ITEMS[5].copy()
-        item["confidence"] = 0.72
         item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
         return item
     if "reusable" in lower or "steel water bottle" in lower or "stainless steel" in lower:
@@ -421,6 +421,8 @@ def analyze_waste_image(image_bytes=None, filename=""):
     generic_filename = fn_lower in ["camera_capture.jpg", "cam_shot.jpg", "photo.jpg", "image.jpg", "scan.jpg", "receipt.jpg"]
     if "bottle" in fn_lower or "plastic" in fn_lower:
         return SIMULATED_ITEMS[0]
+    elif "phone" in fn_lower or "electronic" in fn_lower or "battery" in fn_lower or "ewaste" in fn_lower:
+        return SIMULATED_ITEMS[5]
     elif "can" in fn_lower or "metal" in fn_lower or "aluminum" in fn_lower:
         return SIMULATED_ITEMS[1]
     elif "banana" in fn_lower or "peel" in fn_lower or "apple" in fn_lower or "food" in fn_lower or "organic" in fn_lower:
@@ -429,8 +431,6 @@ def analyze_waste_image(image_bytes=None, filename=""):
         return SIMULATED_ITEMS[3]
     elif "jar" in fn_lower or "glass" in fn_lower:
         return SIMULATED_ITEMS[4]
-    elif "phone" in fn_lower or "electronic" in fn_lower or "battery" in fn_lower or "ewaste" in fn_lower:
-        return SIMULATED_ITEMS[5]
     elif "reusable" in fn_lower or "steel" in fn_lower:
         return SIMULATED_ITEMS[6]
     
