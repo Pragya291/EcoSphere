@@ -16,12 +16,13 @@ def chat_coach():
     user_id = data.get('user_id', 'demo_user')
     message = data.get('message', '')
     history = data.get('history', [])  # list of dicts: {'sender': 'user'/'coach', 'text': '...'}
+    latest_scan = data.get('latest_scan', None)
     
     if not message:
         return jsonify({"success": False, "message": "Missing message"}), 400
         
-    # Get response from AI Eco Coach (or simulation fallback)
-    response_text = get_coach_response(history, message)
+    # Get response from AI Eco Coach (with scan context awareness)
+    response_text = get_coach_response(history, message, latest_scan=latest_scan)
     
     # Check if this chat completes the "chat_energy" mission
     completed_mission = None

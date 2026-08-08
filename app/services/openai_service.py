@@ -77,99 +77,156 @@ if not client and api_key:
 SIMULATED_ITEMS = [
     {
         "material": "PET Plastic Bottle",
+        "category": "Plastic Packaging",
         "confidence": 0.95,
         "recyclable": True,
+        "disposal_recommendation": "Empty, rinse and place in the plastic recycling bin.",
+        "environmental_impact": "Moderate (450 yrs breakdown)",
+        "eco_alternative": "Switch to a reusable stainless steel water bottle.",
+        "explanation": "PET (#1) is highly recyclable into polyester fibers and new bottles.",
+        "is_uncertain": False,
         "reuse_ideas": [
             "Cut in half to use as a seedling starter pot",
             "Create a self-watering planter container",
-            "Clean and reuse for storing dry grains or beads"
+            "Clean and reuse for storing dry grains or craft supplies"
         ],
         "repair_ideas": [
-            "Not recommended for repair. Recycle or reuse instead."
+            "Not recommended for repair. Recycle or upcycle instead."
         ],
         "decomposition_time": "450 years",
         "co2_impact": -0.083,  # savings in kg of CO2 by recycling vs landfill
         "reward_earned": 50
     },
     {
-        "material": "Aluminum Soda Can",
+        "material": "Aluminum Beverage Can",
+        "category": "Metal Can",
         "confidence": 0.98,
         "recyclable": True,
+        "disposal_recommendation": "Rinse out liquids and drop in metal/can recycling bin.",
+        "environmental_impact": "High energy impact (recycling saves 95% energy)",
+        "eco_alternative": "Choose bulk fountain drinks or reusable flasks.",
+        "explanation": "Infinitely recyclable metal. Remelting saves 95% of raw production energy.",
+        "is_uncertain": False,
         "reuse_ideas": [
             "Pencil holder for your desk",
-            "Crush and use in drainage for plant pots",
-            "Construct a small soda-can tab chain decoration"
+            "Crush and use in drainage layer for potted plants",
+            "Construct a soda-can tab chain decoration"
         ],
         "repair_ideas": [
-            "Not applicable for repair. Highly recyclable."
+            "Highly recyclable metal; recycling is preferred."
         ],
         "decomposition_time": "200-500 years",
         "co2_impact": -0.160,
         "reward_earned": 60
     },
     {
-        "material": "Organic Banana Peel",
+        "material": "Organic Food Waste (Banana Peel)",
+        "category": "Organic Waste",
         "confidence": 0.99,
         "recyclable": False,
+        "disposal_recommendation": "Place in organic compost bin or backyard garden soil.",
+        "environmental_impact": "Low (Generates methane if landfilled, rich fertilizer if composted)",
+        "eco_alternative": "Use fruit scraps to brew natural home fertilizer tea.",
+        "explanation": "Decomposes rapidly into nutrient-rich humus for garden plants.",
+        "is_uncertain": False,
         "reuse_ideas": [
             "Add to backyard compost bin to enrich soil nutrients",
             "Boil in water to create nutrient-rich liquid fertilizer for houseplants",
-            "Rub the inside of the peel on leather shoes or houseplant leaves to polish them"
+            "Rub inside of peel on plant leaves to clean and polish them"
         ],
         "repair_ideas": [
-            "Organic material. Composting is the best path."
+            "Natural organic scrap. Composting is optimal."
         ],
         "decomposition_time": "2-10 days",
-        "co2_impact": -0.020,  # compost vs landfill methane emissions
+        "co2_impact": -0.020,
         "reward_earned": 40
     },
     {
-        "material": "Cardboard Box",
+        "material": "Cardboard Shipping Box",
+        "category": "Cardboard / Paper",
         "confidence": 0.94,
         "recyclable": True,
+        "disposal_recommendation": "Flatten box, remove plastic tape, place in paper/cardboard recycling.",
+        "environmental_impact": "Moderate (Requires forest wood fiber)",
+        "eco_alternative": "Use reusable tote bags or plastic storage totes.",
+        "explanation": "Cardboard fibers can be recycled 5-7 times into new packaging.",
+        "is_uncertain": False,
         "reuse_ideas": [
             "Use as storage boxes for home organization",
-            "Lay down as weed barriers in garden beds",
-            "Repurpose for packaging shipments"
+            "Lay down as weed barrier under garden mulch",
+            "Repurpose for packaging future shipments"
         ],
         "repair_ideas": [
-            "Reinforce seams with eco-friendly paper tape if torn"
+            "Reinforce torn seams with paper tape if reusing."
         ],
         "decomposition_time": "2 months",
         "co2_impact": -0.110,
-        "reward_earned": 30
+        "reward_earned": 35
     },
     {
-        "material": "Glass Jar",
+        "material": "Glass Jar Container",
+        "category": "Glass",
         "confidence": 0.97,
         "recyclable": True,
+        "disposal_recommendation": "Rinse jar, remove lid, drop in glass recycling bottle bank.",
+        "environmental_impact": "Low chemical toxicity (1 million yrs breakdown)",
+        "eco_alternative": "Reusable glass food containers (which this is!).",
+        "explanation": "100% infinitely recyclable without quality loss.",
+        "is_uncertain": False,
         "reuse_ideas": [
             "Store kitchen bulk ingredients like rice, lentils, or spices",
-            "Use as a water glass or smoothy container",
-            "Build a stylish candle holder or terrarium"
+            "Use as a drinking glass or smoothie container",
+            "Build a stylish candle holder or miniature terrarium"
         ],
         "repair_ideas": [
-            "If chipped, do not reuse for food. Upcycle into a vase with protective sealant."
+            "If chipped, do not use for food. Upcycle into decorative vase."
         ],
         "decomposition_time": "1 million years",
         "co2_impact": -0.125,
         "reward_earned": 45
     },
     {
-        "material": "E-Waste: Old Smartphone",
+        "material": "E-Waste: Disused Smartphone",
+        "category": "Electronic Waste",
         "confidence": 0.91,
-        "recyclable": True,  # via e-waste facility
+        "recyclable": True,
+        "disposal_recommendation": "Do NOT trash. Bring to certified electronic waste drop-off facility.",
+        "environmental_impact": "Very High (Precious metals, lithium battery hazards)",
+        "eco_alternative": "Repair existing phone or buy refurbished electronics.",
+        "explanation": "Contains gold, copper, cobalt & rare earth elements requiring specialized recovery.",
+        "is_uncertain": False,
         "reuse_ideas": [
-            "Use as a dedicated smart home controller or alarm clock",
-            "Donate to a shelter or community organization if functional",
-            "Repurpose as an offline media player or security camera"
+            "Use as a dedicated smart home controller or desk clock",
+            "Donate to community organization if functional",
+            "Repurpose as an offline music player or dash cam"
         ],
         "repair_ideas": [
-            "Replace degraded battery, repair screen through local authorized service"
+            "Replace battery or screen through certified local technician."
         ],
-        "decomposition_time": "1,000+ years (metals and glass don't decompose)",
-        "co2_impact": -15.0,  # massive carbon prevention by avoiding manufacturing a new device
-        "reward_earned": 150
+        "decomposition_time": "1,000+ years",
+        "co2_impact": -15.0,
+        "reward_earned": 120
+    },
+    {
+        "material": "Reusable Stainless Steel Water Bottle",
+        "category": "Eco-friendly product",
+        "confidence": 0.96,
+        "recyclable": True,
+        "disposal_recommendation": "Keep using! Stainless steel is durable for 10+ years.",
+        "environmental_impact": "Very High Savings (Replaces 1,000+ single-use plastic bottles)",
+        "eco_alternative": "You are already using the best eco alternative!",
+        "explanation": "High durability zero-waste product. Eliminates single-use plastic waste stream.",
+        "is_uncertain": False,
+        "reuse_ideas": [
+            "Daily hydration companion for office, gym, and travel",
+            "Insulated thermos for hot tea or cold beverages"
+        ],
+        "repair_ideas": [
+            "Replace rubber lid seal ring if leaking."
+        ],
+        "decomposition_time": "500+ years",
+        "co2_impact": -2.50,
+        "reward_earned": 75
     }
 ]
 
@@ -183,20 +240,26 @@ def analyze_waste_image(image_bytes=None, filename=""):
             base64_image = base64.b64encode(image_bytes).decode('utf-8')
             
             prompt = """
-            You are an expert waste classification AI. Analyze the image provided.
-            Respond ONLY with a valid JSON object matching this schema:
+            You are an expert waste & sustainability classification AI. Analyze the provided image.
+            Return ONLY a valid JSON object matching this schema exactly:
             {
-                "material": "Name of waste material (e.g. Plastic Bottle, Aluminum Can)",
-                "confidence": 0.92,
-                "recyclable": true/false,
-                "reuse_ideas": ["idea 1", "idea 2"],
-                "repair_ideas": ["idea 1", "idea 2"],
-                "decomposition_time": "Duration (e.g., 450 years)",
-                "co2_impact": -0.05, // estimated carbon savings in kg by recycling/proper disposal vs landfill. Use negative number for savings.
-                "reward_earned": 50 // integer score between 20 and 150 based on impact
+                "material": "Specific name of object (e.g. PET Plastic Bottle, Glass Jar, Solar Panel, Banana Peel, Cotton Shirt)",
+                "category": "Category name (e.g., Plastic Packaging, Metal Can, Glass, Organic Waste, Cardboard / Paper, Electronic Waste, Eco-friendly product, Textile)",
+                "confidence": 0.95, // float between 0.10 and 0.99
+                "recyclable": true, // boolean
+                "disposal_recommendation": "Clear step-by-step recommendation on how to dispose, recycle or compost this item",
+                "environmental_impact": "Summary of eco impact (e.g. High, Moderate, Low with brief reason)",
+                "eco_alternative": "Recommended sustainable eco-friendly alternative to single-use version",
+                "explanation": "Detailed scientific explanation of material composition and recycling path",
+                "is_uncertain": false, // set to true ONLY if image is blurry, extremely dark, or unidentifiable as any object
+                "reuse_ideas": ["Practical upcycling idea 1", "Practical upcycling idea 2"],
+                "repair_ideas": ["Repair or care tip"],
+                "decomposition_time": "Estimated duration (e.g., 450 years, 2 months)",
+                "co2_impact": -0.083, // estimated carbon savings in kg by recycling/proper disposal vs landfill. Use negative number for savings.
+                "reward_earned": 50 // integer score between 25 and 120 based on environmental impact
             }
-            Do not include markdown tags like ```json in the output. Output pure JSON.
-            IMPORTANT: If the image is not a physical waste item (e.g. text slide, chart, digital logo), classify it as "Infographic flyer / Printed paper document" and output the JSON immediately. Do not write any conversational preamble or thinking blocks. Start your output directly with the JSON object.
+            Do not include markdown code block backticks like ```json in your response. Output pure raw JSON.
+            Start directly with '{' and end with '}'.
             """
             
             if is_groq:
@@ -239,7 +302,6 @@ def analyze_waste_image(image_bytes=None, filename=""):
                 response = client.chat.completions.create(**kwargs)
                 res_content = response.choices[0].message.content
             else:
-                # Legacy openai v0.x call
                 response = openai.ChatCompletion.create(
                     model="gpt-4-vision-preview",
                     messages=[
@@ -264,9 +326,19 @@ def analyze_waste_image(image_bytes=None, filename=""):
                 )
                 res_content = response.choices[0].message.content
                 
-            return extract_json_payload(res_content)
+            parsed = extract_json_payload(res_content)
+            if parsed and isinstance(parsed, dict) and "material" in parsed:
+                # Ensure default fallback values for any missing fields
+                parsed.setdefault("category", "General Waste")
+                parsed.setdefault("confidence", 0.90)
+                parsed.setdefault("disposal_recommendation", "Rinse and dispose of in local recycling bin.")
+                parsed.setdefault("environmental_impact", "Moderate")
+                parsed.setdefault("eco_alternative", "Choose reusable zero-waste options.")
+                parsed.setdefault("explanation", "Scanned and evaluated by EcoSphere Vision AI.")
+                parsed.setdefault("is_uncertain", False)
+                return parsed
         except Exception as e:
-            print(f"OpenAI Vision API error: {e}. Falling back to simulation.")
+            print(f"OpenAI Vision API error: {e}. Falling back to smart keyword simulation.")
     
     # Keyword based simulation fallback
     fn_lower = filename.lower()
@@ -280,37 +352,52 @@ def analyze_waste_image(image_bytes=None, filename=""):
         return SIMULATED_ITEMS[3]
     elif "jar" in fn_lower or "glass" in fn_lower:
         return SIMULATED_ITEMS[4]
-    elif "phone" in fn_lower or "electronic" in fn_lower or "battery" in fn_lower:
+    elif "phone" in fn_lower or "electronic" in fn_lower or "battery" in fn_lower or "ewaste" in fn_lower:
         return SIMULATED_ITEMS[5]
+    elif "reusable" in fn_lower or "steel" in fn_lower:
+        return SIMULATED_ITEMS[6]
     
-    # Pick a random one for visual demonstration
+    # Pick a random item
     return random.choice(SIMULATED_ITEMS)
 
-def get_coach_response(chat_history, user_message):
+def get_coach_response(chat_history, user_message, latest_scan=None):
     """
     Get response from the Eco Coach.
-    Includes fallback rules based on message content for offline/demo mode.
+    Supports scan context awareness (latest_scan parameter).
     """
+    scan_context_prompt = ""
+    if latest_scan and isinstance(latest_scan, dict) and latest_scan.get("material"):
+        scan_context_prompt = (
+            f"\n[CURRENT SCAN CONTEXT IN EFFECT]:\n"
+            f"The user has just scanned an item with the AI Waste Scanner.\n"
+            f"- Detected Material: {latest_scan.get('material')}\n"
+            f"- Category: {latest_scan.get('category', 'Waste')}\n"
+            f"- Recyclable: {latest_scan.get('recyclable')}\n"
+            f"- Confidence: {int(latest_scan.get('confidence', 0.9) * 100)}%\n"
+            f"- Recommended Disposal: {latest_scan.get('disposal_recommendation')}\n"
+            f"- Eco Alternative: {latest_scan.get('eco_alternative')}\n"
+            f"- Reward Earned: {latest_scan.get('xp_earned', 50)} Eco Coins & XP\n"
+            f"If the user asks questions like 'What is this?', 'Is it recyclable?', 'How should I dispose of this?', "
+            f"'What eco alternative can I use?', or 'How many eco points do I get?', directly answer using this scan context!"
+        )
+
     if client:
         try:
             # Build chat completions messages list
-            messages = [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are EcoCoach, the premium AI companion on the EcoSphere platform. "
-                        "You sound like a mix of Stripe design polish, Apple elegance, and Linear precision: "
-                        "professional, extremely insightful, encouraging, and clear. Avoid typical conversational filler. "
-                        "Provide practical carbon-saving tips. Keep responses under 4 sentences unless asked otherwise. "
-                        "Keep your response tone premium, venture-backed SaaS style."
-                    )
-                }
-            ]
+            system_instruction = (
+                "You are EcoCoach, the premium AI companion on the EcoSphere platform. "
+                "You sound like a mix of Stripe design polish, Apple elegance, and Linear precision: "
+                "professional, extremely insightful, encouraging, and clear. "
+                "Provide practical carbon-saving tips. Keep responses under 4 sentences unless asked otherwise. "
+                + scan_context_prompt
+            )
+
+            messages = [{"role": "system", "content": system_instruction}]
             
             # Add history
             for chat in chat_history:
-                role = "user" if chat['sender'] == 'user' else "assistant"
-                messages.append({"role": role, "content": chat['text']})
+                role = "user" if chat.get('sender') == 'user' else "assistant"
+                messages.append({"role": role, "content": chat.get('text', '')})
             
             messages.append({"role": "user", "content": user_message})
             
@@ -320,40 +407,56 @@ def get_coach_response(chat_history, user_message):
                 chat_model = "grok-beta"
             else:
                 chat_model = "gpt-4o-mini"
+
             if HAS_NEW_OPENAI:
                 response = client.chat.completions.create(
                     model=chat_model,
                     messages=messages,
-                    max_tokens=250
+                    max_tokens=300
                 )
                 return response.choices[0].message.content
             else:
-                # Legacy openai v0.x call
                 response = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo",
                     messages=messages,
-                    max_tokens=250
+                    max_tokens=300
                 )
                 return response.choices[0].message.content
         except Exception as e:
             print(f"OpenAI Chat API error: {e}. Falling back to simulation.")
 
-    # Rule-based coach response simulation
+    # Rule-based coach response simulation with scan context
     msg = user_message.lower()
+
+    if latest_scan and isinstance(latest_scan, dict) and latest_scan.get("material"):
+        mat = latest_scan.get("material")
+        cat = latest_scan.get("category", "Waste")
+        recyc = "Yes, it is recyclable." if latest_scan.get("recyclable") else "No, it requires composting or special e-waste handling."
+        disp = latest_scan.get("disposal_recommendation", "Rinse and place in designated bin.")
+        alt = latest_scan.get("eco_alternative", "Choose reusable options.")
+        pts = latest_scan.get("xp_earned", 50)
+
+        if "what is this" in msg or "what item" in msg or "what did i scan" in msg or "explain this" in msg:
+            return f"You scanned a {mat} classified under {cat}. It is recorded with {int(latest_scan.get('confidence', 0.9)*100)}% AI confidence."
+        elif "recycle" in msg or "recyclable" in msg or "can i recycle" in msg:
+            return f"{recyc} Recommended disposal: {disp}"
+        elif "dispose" in msg or "how to throw" in msg or "where does it go" in msg:
+            return f"To dispose of {mat}: {disp}"
+        elif "alternative" in msg or "instead" in msg or "eco friendly option" in msg:
+            return f"The recommended eco-friendly alternative for {mat} is: {alt}"
+        elif "point" in msg or "coins" in msg or "xp" in msg or "reward" in msg:
+            return f"You earned +{pts} Eco Coins and +{pts} XP for scanning this {mat}!"
+
     if "hello" in msg or "hi" in msg:
         return "Greetings from EcoSphere AI. I am your Sustainability Coach. How can I assist you with your carbon offset goals or waste scanning metrics today?"
     elif "compost" in msg or "food" in msg or "waste" in msg:
-        return "Composting organic matter is highly effective. It diverts organic waste from landfills where it would otherwise generate methane, a greenhouse gas 25x more potent than CO2. Ensure you mix 'greens' (nitrogen-rich food scraps) and 'browns' (carbon-rich cardboard, dry leaves) in a 1:2 ratio."
+        return "Composting organic matter is highly effective. It diverts organic waste from landfills where it would otherwise generate methane. Ensure you mix 'greens' (nitrogen-rich food scraps) and 'browns' (carbon-rich cardboard, dry leaves) in a 1:2 ratio."
     elif "energy" in msg or "electricity" in msg or "solar" in msg:
-        return "To optimize household energy efficiency, address standby power consumption ('vampire loads') by using smart power strips. Transitioning to LED lighting yields up to 75% savings, and implementing a smart thermostat reduces heating and cooling energy use by roughly 10-15%."
+        return "To optimize household energy efficiency, address standby power consumption ('vampire loads') by using smart power strips. Transitioning to LED lighting yields up to 75% savings."
     elif "water" in msg or "shower" in msg:
-        return "Reducing shower duration to 5 minutes saves up to 40 liters of water per session. Additionally, installing low-flow aerators on faucets yields high savings with negligible drop in water pressure. Every liter conserved reduces the energy required to treat and transport water."
+        return "Reducing shower duration to 5 minutes saves up to 40 liters of water per session. Installing low-flow aerators on faucets yields high savings with negligible drop in water pressure."
     elif "plastic" in msg or "recycle" in msg:
-        return "Recycling is critical but often contaminated. Always rinse food containers to prevent mold and contamination. Focus on Plastics #1 (PET) and #2 (HDPE) as they have high market demand and recycling efficiency. Thin plastics, like wraps and bags, require specialized drop-offs."
-    elif "score" in msg or "points" in msg or "earn" in msg:
-        return "You can increase your EcoSphere Green Score by scanning household waste items, completing Daily Missions, and logging resource savings. Every 100 points will help grow your Living EcoSphere garden from a seed into a sustainable Smart Eco City."
-    
-    # General responses list
+        return "Recycling is critical but often contaminated. Always rinse food containers to prevent mold. Focus on Plastics #1 (PET) and #2 (HDPE) as they have high recycling efficiency."
     general_responses = [
         "A highly effective daily action is reducing thermal load: lowering your thermostat by 1-2 degrees in winter or raising it in summer can reduce heating/cooling emissions by up to 10%.",
         "Consider transit efficiency. Substituting one solo vehicle commute per week with cycling, walking, or public transit reduces personal transport emissions by approximately 15% annually.",
@@ -361,6 +464,8 @@ def get_coach_response(chat_history, user_message):
         "Sustainable design is about continuous refinement. You can scan objects using our Waste Scanner to evaluate their direct composition and earn Eco Coins to plant real-world trees."
     ]
     return random.choice(general_responses)
+
+
 
 def analyze_receipt(image_bytes=None, filename=""):
     """

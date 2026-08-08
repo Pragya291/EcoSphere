@@ -199,6 +199,7 @@ function switchView(viewName) {
   // Specific view loaders
   if (viewName === 'scanner') {
     startCamera();
+    loadScanHistory();
   } else {
     stopCamera();
   }
@@ -1058,65 +1059,141 @@ function logManualActivity() {
 }
 
 // ==========================================
-// AI CAMERA SCANNER API LOGIC
+// AI CAMERA SCANNER & VOICE INTEGRATIONS
 // ==========================================
-function startCamera() {
+state.cameraFacingMode = "environment"; // default rear camera
+state.latestScan = null;
+let currentUtterance = null;
+
+function startCamera(facingMode) {
   const video = document.getElementById("camera-feed");
   const overlay = document.getElementById("scanner-overlay");
+  const previewImg = document.getElementById("scan-preview-img");
   const btnCapture = document.getElementById("btn-capture");
   const btnSnap = document.getElementById("btn-snap");
+  const btnSwitch = document.getElementById("btn-switch-cam");
+  const btnRetake = document.getElementById("btn-retake");
   
+  const mode = facingMode || state.cameraFacingMode || "environment";
+
+  if (previewImg) previewImg.style.display = "none";
+
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+    // Stop any existing stream first
+    if (state.cameraStream) {
+      state.cameraStream.getTracks().forEach(track => track.stop());
+    }
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: mode, width: { ideal: 1280 }, height: { ideal: 720 } } })
       .then(stream => {
         state.cameraStream = stream;
+        state.cameraFacingMode = mode;
         video.srcObject = stream;
         video.style.display = "block";
-        overlay.style.display = "none";
-        btnCapture.style.display = "none";
-        btnSnap.style.display = "inline-flex";
+        if (overlay) overlay.style.display = "none";
+        if (btnCapture) btnCapture.style.display = "none";
+        if (btnSnap) btnSnap.style.display = "inline-flex";
+        if (btnSwitch) btnSwitch.style.display = "inline-flex";
+        if (btnRetake) btnRetake.style.display = "inline-flex";
         
-        announceAccessibility("Webcam feed opened successfully. Place waste item in front of screen.");
+        announceAccessibility("Webcam feed active. Center object in view.");
+        triggerToast("Camera connected successfully.", "success");
       })
       .catch(err => {
-        console.error("Camera access blocked: ", err);
-        triggerToast("Failed to initialize webcam. Use manual photo uploads instead.", "danger");
+        console.error("Camera access error: ", err);
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          triggerToast("Camera access was denied. Please enable camera permission in your browser or upload an image file.", "danger");
+        } else {
+          triggerToast("Could not access camera device. Please upload an image file instead.", "warning");
+        }
       });
+  } else {
+    triggerToast("Webcam is not supported on this browser. Use photo upload instead.", "warning");
   }
+}
+
+function toggleCameraFacing() {
+  const newMode = state.cameraFacingMode === "environment" ? "user" : "environment";
+  startCamera(newMode);
 }
 
 function stopCamera() {
   if (state.cameraStream) {
     state.cameraStream.getTracks().forEach(track => track.stop());
     state.cameraStream = null;
-    
-    document.getElementById("camera-feed").style.display = "none";
-    document.getElementById("scanner-overlay").style.display = "flex";
-    document.getElementById("btn-capture").style.display = "inline-flex";
-    document.getElementById("btn-snap").style.display = "none";
   }
+  const video = document.getElementById("camera-feed");
+  if (video) video.style.display = "none";
+}
+
+function resetScannerView() {
+  stopCamera();
+  const overlay = document.getElementById("scanner-overlay");
+  const previewImg = document.getElementById("scan-preview-img");
+  const resultsCard = document.getElementById("card-scan-results");
+  const btnCapture = document.getElementById("btn-capture");
+  const btnSnap = document.getElementById("btn-snap");
+  const btnSwitch = document.getElementById("btn-switch-cam");
+  const btnRetake = document.getElementById("btn-retake");
+
+  if (previewImg) previewImg.style.display = "none";
+  if (overlay) overlay.style.display = "flex";
+  if (resultsCard) resultsCard.style.display = "none";
+  if (btnCapture) btnCapture.style.display = "inline-flex";
+  if (btnSnap) btnSnap.style.display = "none";
+  if (btnSwitch) btnSwitch.style.display = "none";
+  if (btnRetake) btnRetake.style.display = "none";
+
+  stopVoiceReport();
 }
 
 function capturePhoto() {
   const video = document.getElementById("camera-feed");
+  if (!video || !video.videoWidth) {
+    triggerToast("Camera feed not ready yet. Please wait.", "warning");
+    return;
+  }
+
   const canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth || 640;
-  canvas.height = video.videoHeight || 480;
+  const maxDim = 1024;
+  let w = video.videoWidth;
+  let h = video.videoHeight;
+  if (w > maxDim || h > maxDim) {
+    if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+    else { w = Math.round((w * maxDim) / h); h = maxDim; }
+  }
+  canvas.width = w;
+  canvas.height = h;
   
   const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const base64Image = canvas.toDataURL("image/jpeg");
-  
+  ctx.drawImage(video, 0, 0, w, h);
+  const base64Image = canvas.toDataURL("image/jpeg", 0.85);
+
+  // Show captured photo preview
+  const previewImg = document.getElementById("scan-preview-img");
+  if (previewImg) {
+    previewImg.src = base64Image;
+    previewImg.style.display = "block";
+  }
+  video.style.display = "none";
+
+  stopCamera();
   processImageScan(base64Image, "cam_shot.jpg");
 }
 
 function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    triggerToast("Please select a valid image file (JPG, PNG, WebP).", "danger");
+    return;
+  }
   
   const reader = new FileReader();
   reader.onload = function(e) {
-    processImageScan(e.target.result, file.name);
+    const rawUrl = e.target.result;
+    compressAndProcessImage(rawUrl, file.name);
   };
   reader.readAsDataURL(file);
 }
@@ -1125,20 +1202,67 @@ function handleFileDrop(event) {
   event.preventDefault();
   const file = event.dataTransfer.files[0];
   if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    triggerToast("Please drop a valid image file.", "danger");
+    return;
+  }
   
   const reader = new FileReader();
   reader.onload = function(e) {
-    processImageScan(e.target.result, file.name);
+    compressAndProcessImage(e.target.result, file.name);
   };
   reader.readAsDataURL(file);
 }
 
+function compressAndProcessImage(dataUrl, filename) {
+  const img = new Image();
+  img.onload = function() {
+    const canvas = document.createElement("canvas");
+    const maxDim = 1024;
+    let w = img.width;
+    let h = img.height;
+    if (w > maxDim || h > maxDim) {
+      if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+      else { w = Math.round((w * maxDim) / h); h = maxDim; }
+    }
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, w, h);
+    const compressedBase64 = canvas.toDataURL("image/jpeg", 0.85);
+
+    // Set preview
+    const previewImg = document.getElementById("scan-preview-img");
+    const overlay = document.getElementById("scanner-overlay");
+    if (previewImg) {
+      previewImg.src = compressedBase64;
+      previewImg.style.display = "block";
+    }
+    if (overlay) overlay.style.display = "none";
+    document.getElementById("camera-feed").style.display = "none";
+
+    const btnRetake = document.getElementById("btn-retake");
+    if (btnRetake) btnRetake.style.display = "inline-flex";
+
+    processImageScan(compressedBase64, filename);
+  };
+  img.src = dataUrl;
+}
+
 function processImageScan(base64Data, filename) {
-  // Display laser scanner lines
   const laser = document.getElementById("scanner-laser");
-  laser.style.display = "block";
+  const statusOverlay = document.getElementById("scanner-status-overlay");
+  const statusBadge = document.getElementById("scan-api-status-badge");
+
+  if (laser) laser.style.display = "block";
+  if (statusOverlay) statusOverlay.style.display = "flex";
+  if (statusBadge) {
+    statusBadge.textContent = "⏳ Analyzing with Vision AI...";
+    statusBadge.style.color = "#f9a826";
+    statusBadge.style.background = "rgba(249,168,38,0.15)";
+  }
   
-  announceAccessibility("AI waste scanner running. Scanning materials and carbon indicators.");
+  announceAccessibility("AI waste scanner running. Analyzing material composition and environmental impact.");
   
   fetch('/api/scan', {
     method: 'POST',
@@ -1147,69 +1271,238 @@ function processImageScan(base64Data, filename) {
   })
   .then(r => r.json())
   .then(data => {
-    laser.style.display = "none";
-    if (data.success) {
-      updateUIWithProfile(data.profile);
+    if (laser) laser.style.display = "none";
+    if (statusOverlay) statusOverlay.style.display = "none";
+    if (statusBadge) {
+      statusBadge.textContent = "🟢 Vision AI Ready";
+      statusBadge.style.color = "#52e065";
+      statusBadge.style.background = "rgba(82,224,101,0.15)";
+    }
+
+    if (data.success && data.scan) {
+      state.latestScan = data.scan;
+      if (data.profile) updateUIWithProfile(data.profile);
       displayScanResult(data.scan);
-      triggerConfetti();
-      triggerToast(`Scanned successfully: ${data.scan.material}!`, "success");
+
+      if (data.is_duplicate) {
+        triggerToast(`Scan recorded! Reward previously earned within 30s.`, "info");
+      } else {
+        triggerConfetti();
+        triggerToast(`Scanned successfully: ${data.scan.material}! +${data.scan.xp_earned} Eco Coins earned`, "success");
+      }
       
       // Auto complete challenge
       if (data.scan.recyclable) {
         completeChallengeLocal("scan_recycle");
       }
+      loadScanHistory();
     }
   })
   .catch(err => {
-    laser.style.display = "none";
-    console.error("Scan error: ", err);
-    triggerToast("Offline scan mock result completed.", "success");
+    if (laser) laser.style.display = "none";
+    if (statusOverlay) statusOverlay.style.display = "none";
+    if (statusBadge) {
+      statusBadge.textContent = "🟢 Offline Mode";
+      statusBadge.style.color = "#52e065";
+    }
+    console.error("Scan API error: ", err);
+    triggerToast("AI analysis complete (offline simulation mode).", "info");
     
-    // simulated local callback
     const mockScan = {
-      material: "PET Plastic Juice Bottle",
+      material: "PET Plastic Bottle",
+      category: "Plastic Packaging",
+      confidence: 0.95,
+      recyclable: true,
+      disposal_recommendation: "Empty, rinse and place in plastic recycling bin.",
+      environmental_impact: "Moderate (450 yrs breakdown)",
+      eco_alternative: "Switch to a reusable stainless steel water bottle.",
+      explanation: "PET (#1) is highly recyclable into polyester fibers and new bottles.",
+      is_uncertain: false,
+      reuse_ideas: ["Cut in half for seedling planter", "Clean and reuse for dry bean storage"],
       decomposition_time: "450 Years",
       co2_impact: -0.083,
-      recyclable: true,
-      reuse_ideas: ["Use as a seeding starter pot.", "Clean and store bead organizers."],
-      xp_earned: 50
+      xp_earned: 50,
+      coins_earned: 50
     };
+    state.latestScan = mockScan;
     displayScanResult(mockScan);
     
-    // update mock profile
     state.profile.green_score = Math.min(state.profile.green_score + 25, 1000);
     state.profile.coins += 50;
+    state.profile.xp += 50;
     updateUIWithProfile(state.profile);
     completeChallengeLocal("scan_recycle");
+    loadScanHistory();
   });
 }
 
 function displayScanResult(scan) {
-  document.getElementById("card-scan-results").style.display = "block";
-  document.getElementById("res-material").textContent = scan.material;
-  document.getElementById("res-decomp").textContent = scan.decomposition_time;
-  document.getElementById("res-co2").textContent = `${scan.co2_impact} kg CO₂`;
-  document.getElementById("res-recyclable").textContent = scan.recyclable ? "Yes (Highly recyclable)" : "No (Compost or specialized dropoff needed)";
+  const resultsCard = document.getElementById("card-scan-results");
+  if (resultsCard) resultsCard.style.display = "block";
+
+  setText("res-material", scan.material || "Waste Item");
+  setText("res-explanation", scan.explanation || "Analyzed by EcoSphere AI.");
   
+  const catBadge = document.getElementById("res-category-badge");
+  if (catBadge) catBadge.textContent = scan.category || "General Waste";
+
+  const recycBadge = document.getElementById("res-recyclable-badge");
+  if (recycBadge) {
+    if (scan.recyclable) {
+      recycBadge.textContent = "♻️ Recyclable";
+      recycBadge.style.color = "#52e065";
+      recycBadge.style.borderColor = "rgba(82,224,101,0.4)";
+    } else {
+      recycBadge.textContent = "⚠️ Special Disposal / Compost";
+      recycBadge.style.color = "#f9a826";
+      recycBadge.style.borderColor = "rgba(249,168,38,0.4)";
+    }
+  }
+
+  const confPercent = Math.round((scan.confidence || 0.90) * 100);
+  setText("res-confidence-text", `${confPercent}%`);
+
+  // Show uncertainty box if confidence is low or is_uncertain
+  const uncBox = document.getElementById("scan-uncertainty-box");
+  if (uncBox) {
+    uncBox.style.display = (scan.is_uncertain || confPercent < 60) ? "block" : "none";
+  }
+
+  setText("res-disposal", scan.disposal_recommendation || "Place in designated collection container.");
+  setText("res-alternative", scan.eco_alternative || "Use a durable reusable alternative.");
+  setText("res-decomp", scan.decomposition_time || "Varies");
+  setText("res-co2", `${scan.co2_impact || -0.05} kg CO₂`);
+
   const reuseUl = document.getElementById("res-reuse");
-  reuseUl.innerHTML = "";
-  scan.reuse_ideas.forEach(idea => {
-    const li = document.createElement("li");
-    li.textContent = idea;
-    reuseUl.appendChild(li);
-  });
+  if (reuseUl) {
+    reuseUl.innerHTML = "";
+    const ideas = scan.reuse_ideas || ["Repurpose as a planter or household organizer."];
+    ideas.forEach(idea => {
+      const li = document.createElement("li");
+      li.textContent = idea;
+      reuseUl.appendChild(li);
+    });
+  }
+
+  const earnedXP = scan.xp_earned || scan.coins_earned || 40;
+  setText("res-reward", scan.is_duplicate ? "Reward claimed previously (30s rule)" : `+${earnedXP} Eco Coins & +${earnedXP} XP`);
+
+  // Scroll results card into view smoothly
+  resultsCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  announceAccessibility(`Scan complete. Detected ${scan.material}. ${scan.disposal_recommendation}`);
+}
+
+// Voice Output (TTS) Controls for Scan Results
+function getScanVoiceSummary() {
+  if (!state.latestScan) return "No recent scan result available to read.";
+  const s = state.latestScan;
+  const conf = Math.round((s.confidence || 0.9) * 100);
+  return `I detected a ${s.material} with ${conf} percent confidence. Recommended disposal: ${s.disposal_recommendation || 'place in recycling bin'}. Recommended eco alternative: ${s.eco_alternative || 'use reusable option'}.`;
+}
+
+function playVoiceReport() {
+  if (!('speechSynthesis' in window)) {
+    triggerToast("Voice text-to-speech is not supported on this browser.", "warning");
+    return;
+  }
+  const text = getScanVoiceSummary();
+  window.speechSynthesis.cancel(); // clear previous
+  currentUtterance = new SpeechSynthesisUtterance(text);
+  currentUtterance.rate = 1.0;
   
-  document.getElementById("res-reward").textContent = `+${scan.xp_earned} XP & Eco Coins awarded`;
+  currentUtterance.onstart = () => {
+    setText("voice-player-status", "▶ Playing AI scan report aloud...");
+  };
+  currentUtterance.onend = () => {
+    setText("voice-player-status", "✓ Voice report finished.");
+  };
+  currentUtterance.onerror = () => {
+    setText("voice-player-status", "Voice playback error.");
+  };
   
-  // Speak the scan report details
-  announceAccessibility(`Scan complete. Detected ${scan.material}. Decomposition is estimated at ${scan.decomposition_time}. ${scan.xp_earned} coins awarded.`);
+  window.speechSynthesis.speak(currentUtterance);
+}
+
+function pauseVoiceReport() {
+  if (window.speechSynthesis && window.speechSynthesis.speaking) {
+    window.speechSynthesis.pause();
+    setText("voice-player-status", "⏸ Voice report paused.");
+  }
+}
+
+function resumeVoiceReport() {
+  if (window.speechSynthesis && window.speechSynthesis.paused) {
+    window.speechSynthesis.resume();
+    setText("voice-player-status", "▶ Voice report resumed.");
+  } else {
+    playVoiceReport();
+  }
+}
+
+function stopVoiceReport() {
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+    setText("voice-player-status", "■ Voice report stopped.");
+  }
+}
+
+function replayVoiceReport() {
+  stopVoiceReport();
+  playVoiceReport();
+}
+
+// Ask follow-up question using scan context
+function askScanQuestion(qText) {
+  const coachPanel = document.getElementById("floating-coach-panel");
+  if (coachPanel && coachPanel.style.display === "none") {
+    toggleFloatingCoachPanel();
+  }
+  const input = document.getElementById("chat-input");
+  if (input) {
+    input.value = qText;
+    sendCoachMessage();
+  }
+}
+
+function loadScanHistory() {
+  fetch(`/api/scan/history?user_id=${state.user_id}`)
+    .then(r => r.json())
+    .then(scans => {
+      const container = document.getElementById("scan-history-list");
+      if (!container) return;
+      if (!scans || scans.length === 0) {
+        container.innerHTML = `<div style="font-size:0.75rem; color:#64748b; text-align:center; padding:12px;">No scan history recorded yet.</div>`;
+        return;
+      }
+      container.innerHTML = scans.map(s => {
+        const confPct = Math.round((s.confidence || 0.9) * 100);
+        const dt = s.scanned_at ? new Date(s.scanned_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+        return `
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="width:32px; height:32px; border-radius:50%; background:rgba(82,224,101,0.15); border:1px solid rgba(82,224,101,0.3); display:flex; align-items:center; justify-content:center; font-size:0.9rem;">📷</div>
+              <div>
+                <div style="font-size:0.8rem; font-weight:700; color:#fff;">${s.material || 'Waste Item'}</div>
+                <div style="font-size:0.65rem; color:#64748b;">${s.category || 'General'} · ${confPct}% AI confidence</div>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:0.72rem; font-weight:700; color:#f9a826;">+${s.coins_earned || 40} 🪙</div>
+              <div style="font-size:0.62rem; color:#475569;">${dt}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    })
+    .catch(err => console.error("Error loading scan history:", err));
 }
 
 // ==========================================
 // AI ECO COACH CHAT SPEECH INTEGRATIONS
 // ==========================================
 let chatHistoryList = [
-  { sender: 'coach', text: "Hello! Ask me how to optimize your compost pile or how to prevent vampire energy losses." }
+  { sender: 'coach', text: "Hello! I am your AI Eco Coach. Ask me any question or ask about your latest scan!" }
 ];
 
 function handleChatKey(event) {
@@ -1240,7 +1533,12 @@ function sendCoachMessage() {
   fetch('/api/mentor', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: state.user_id, message: text, history: chatHistoryList })
+    body: JSON.stringify({ 
+      user_id: state.user_id, 
+      message: text, 
+      history: chatHistoryList,
+      latest_scan: state.latestScan 
+    })
   })
   .then(r => r.json())
   .then(data => {
@@ -1263,27 +1561,22 @@ function sendCoachMessage() {
   })
   .catch(() => {
     loader.remove();
-    // offline simulation
-    let simText = "Understood. Composting organic materials diverts food waste from landfills, reducing carbon footprint. Ensure you maintain correct nitrogen balances.";
-    if (text.toLowerCase().includes("energy")) {
-      simText = "To mitigate energy losses, address standby power consumption by unplugging idle appliances. This avoids up to 10% on energy bills.";
+    // offline simulation with latest_scan context support
+    let simText = "Understood. Composting organic materials diverts food waste from landfills, reducing carbon footprint.";
+    if (state.latestScan && state.latestScan.material) {
+      const mat = state.latestScan.material;
+      if (text.toLowerCase().includes("what") || text.toLowerCase().includes("item")) {
+        simText = `You scanned a ${mat}. Disposal advice: ${state.latestScan.disposal_recommendation || 'place in designated recycling'}.`;
+      } else if (text.toLowerCase().includes("recycle")) {
+        simText = `${mat} is ${state.latestScan.recyclable ? 'recyclable' : 'not recyclable in standard bins'}. ${state.latestScan.disposal_recommendation}`;
+      } else if (text.toLowerCase().includes("alternative")) {
+        simText = `The eco-friendly alternative for ${mat} is: ${state.latestScan.eco_alternative || 'use reusable options'}.`;
+      }
     }
     appendChatBubble('coach', simText);
     chatHistoryList.push({ sender: 'coach', text: simText });
     speakCoachReply(simText);
     announceAccessibility(simText);
-    
-    // Trigger energy mission local check
-    if (text.toLowerCase().includes("energy") && !state.profile.completed_challenges.includes("chat_energy")) {
-      state.profile.completed_challenges.push("chat_energy");
-      state.profile.xp += 40;
-      state.profile.coins += 40;
-      state.profile.green_score = Math.min(state.profile.green_score + 25, 1000);
-      updateUIWithProfile(state.profile);
-      triggerConfetti();
-      showAchievementModal("Energy Audit", "Slight boost applied to local profile.");
-      simulateLocalChallenges();
-    }
   });
 }
 
@@ -1296,13 +1589,20 @@ function appendChatBubble(sender, text) {
   historyBox.scrollTop = historyBox.scrollHeight;
 }
 
-// Dictation input (Speech Recognition API)
+// Dictation input (Speech Recognition API) with visual status badges
 let recognition;
 function toggleSpeechRecog() {
   const micBtn = document.getElementById("btn-mic");
+  const badge = document.getElementById("voice-mic-badge");
+  const transBox = document.getElementById("speech-transcribed-box");
+  const transText = document.getElementById("speech-transcribed-text");
   
   if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-    triggerToast("Speech recognition is not supported on this browser.", "warning");
+    triggerToast("Speech recognition is not supported on this browser. You can type your question instead.", "warning");
+    if (badge) {
+      badge.textContent = "⚠️ Speech not supported — Type input";
+      badge.style.color = "#f9a826";
+    }
     return;
   }
   
@@ -1316,36 +1616,69 @@ function toggleSpeechRecog() {
     
     recognition.onstart = () => {
       state.is_listening = true;
-      micBtn.classList.add("listening");
-      micBtn.textContent = "🛑";
-      triggerToast("Listening... Speak now.", "info");
+      if (micBtn) {
+        micBtn.classList.add("listening");
+        micBtn.textContent = "🛑";
+      }
+      if (badge) {
+        badge.textContent = "🎙 Listening... Speak now";
+        badge.style.color = "#f9a826";
+      }
+      triggerToast("Listening... Speak your eco question now.", "info");
     };
     
     recognition.onend = () => {
       state.is_listening = false;
-      micBtn.classList.remove("listening");
-      micBtn.textContent = "🎤";
+      if (micBtn) {
+        micBtn.classList.remove("listening");
+        micBtn.textContent = "🎤";
+      }
+      if (badge) {
+        badge.textContent = "✓ Response ready / Idle";
+        badge.style.color = "#52e065";
+      }
     };
     
     recognition.onresult = (event) => {
       const speechToText = event.results[0][0].transcript;
-      document.getElementById("chat-input").value = speechToText;
-      triggerToast(`Heard: "${speechToText}"`, "success");
+      const input = document.getElementById("chat-input");
+      if (input) input.value = speechToText;
+      
+      if (transBox && transText) {
+        transText.textContent = `"${speechToText}"`;
+        transBox.style.display = "block";
+      }
+      if (badge) {
+        badge.textContent = "⏳ Processing speech...";
+        badge.style.color = "#00d4ff";
+      }
+
+      triggerToast(`Recognized: "${speechToText}"`, "success");
       sendCoachMessage();
     };
     
     recognition.onerror = (e) => {
-      console.error(e);
-      triggerToast("Microphone error occurred.", "danger");
+      console.error("Speech recognition error:", e);
+      if (badge) {
+        badge.textContent = "⚠️ Mic Error — Try again or type";
+        badge.style.color = "#ff5d73";
+      }
+      triggerToast("Microphone error. Please check permissions or type your question.", "danger");
     };
   }
   
   if (state.is_listening) {
     recognition.stop();
   } else {
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error(e);
+      recognition.stop();
+    }
   }
 }
+
 
 // ==========================================
 // ECO MARKETPLACE REDEMPTIONS
