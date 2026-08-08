@@ -4,3 +4,4 @@ firebase-admin
 openai
 requests
 pytest
+gunicorn
