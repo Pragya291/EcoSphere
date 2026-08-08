@@ -1823,33 +1823,92 @@ a {
    ========================================== */
 .marketplace-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+@media (max-width: 1200px) {
+  .marketplace-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .marketplace-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .market-item {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 220px;
+  min-height: 190px;
+  position: relative;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  border: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+
+.market-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(52,211,153,0.5), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.market-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(52, 211, 153, 0.15), 0 4px 16px rgba(0,0,0,0.4);
+  border-color: rgba(52,211,153,0.2);
+}
+
+.market-item:hover::before {
+  opacity: 1;
 }
 
 .item-badge {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  font-size: 0.7rem;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 2px 8px;
-  border-radius: 10px;
-  color: var(--text-secondary);
+  top: 14px;
+  right: 14px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 20px;
+  color: rgba(255,255,255,0.7);
+  background: rgba(52,211,153,0.12);
+  border: 1px solid rgba(52,211,153,0.2);
+}
+
+.item-badge.badge-donation {
+  background: rgba(96,165,250,0.12);
+  border-color: rgba(96,165,250,0.25);
+  color: #93c5fd;
+}
+.item-badge.badge-offset {
+  background: rgba(167,139,250,0.12);
+  border-color: rgba(167,139,250,0.25);
+  color: #c4b5fd;
+}
+.item-badge.badge-cosmetics {
+  background: rgba(251,191,36,0.12);
+  border-color: rgba(251,191,36,0.25);
+  color: #fde68a;
 }
 
 .market-desc {
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   color: var(--text-secondary);
-  margin-bottom: 15px;
-  line-height: 1.4;
+  margin-bottom: 12px;
+  line-height: 1.5;
+  flex: 1;
 }
 
 .market-action {
@@ -1857,12 +1916,27 @@ a {
   justify-content: space-between;
   align-items: center;
   margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.05);
 }
 
 .btn-buy {
-  padding: 8px 16px;
+  padding: 7px 16px;
   border-radius: 8px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, rgba(52,211,153,0.15), rgba(16,185,129,0.1));
+  border: 1px solid rgba(52,211,153,0.3);
+  color: #34d399;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.02em;
+}
+
+.btn-buy:hover {
+  background: linear-gradient(135deg, rgba(52,211,153,0.3), rgba(16,185,129,0.2));
+  box-shadow: 0 4px 16px rgba(52,211,153,0.25);
+  transform: scale(1.04);
 }
 
 /* ==========================================
@@ -2711,3 +2785,107 @@ button.btn-social-dark:hover {
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+/* Eco Tools Layout Enhancements */
+.tool-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  outline: none;
+}
+
+.tool-tab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.estimator-slider-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 12px;
+}
+
+@media (max-width: 1000px) {
+  .estimator-slider-group {
+    grid-template-columns: 1fr;
+  }
+}
+
+.slider-row {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  transition: var(--transition-smooth);
+}
+
+.slider-row:hover {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(61, 220, 132, 0.15);
+}
+
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  margin-bottom: 1px;
+}
+
+/* Footprint History Row Styles */
+.fp-history-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border-radius: 6px;
+}
+
+.fp-history-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.fp-hist-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+}
+
+.fp-hist-time {
+  flex: 1;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.fp-hist-val {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+/* Override active-tool-tab to solid emerald like screenshot */
+.active-tool-tab {
+  background: var(--primary-emerald) !important;
+  color: #071a0e !important;
+  border-color: transparent !important;
+  font-weight: 700 !important;
+  -webkit-text-fill-color: #071a0e !important;
+}
+

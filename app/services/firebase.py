@@ -2,6 +2,9 @@ import os
 import json
 import datetime
 import uuid
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Global SERVER_TIMESTAMP mock token
 MOCK_SERVER_TIMESTAMP = "__SERVER_TIMESTAMP__"
@@ -147,21 +150,25 @@ def init_firebase():
     cred_path = os.getenv('FIREBASE_CREDENTIALS_PATH', 'serviceAccountKey.json')
     project_id = os.getenv('FIREBASE_PROJECT_ID')
     
-    if os.path.exists(cred_path) and project_id:
+    if not os.path.exists(cred_path) and os.path.exists('serviceAccountKey.json.json'):
+        cred_path = 'serviceAccountKey.json.json'
+    
+    if os.path.exists(cred_path):
         try:
             import firebase_admin
             from firebase_admin import credentials, firestore
             if not firebase_admin._apps:
                 cred = credentials.Certificate(cred_path)
-                firebase_admin.initialize_app(cred, {
-                    'projectId': project_id,
-                })
-            print("Successfully initialized Firebase Admin SDK.")
+                options = {}
+                if project_id:
+                    options['projectId'] = project_id
+                firebase_admin.initialize_app(cred, options if options else None)
+            print(f"[INFO] Successfully connected and initialized Firebase Admin SDK with '{cred_path}'.")
             return firestore.client()
         except Exception as e:
-            print(f"Firebase Admin SDK initialization failed: {e}. Falling back to mock database.")
+            print(f"[WARNING] Firebase Admin SDK initialization failed: {e}. Falling back to mock database.")
     else:
-        print("[INFO] Running in local Database mode (serviceAccountKey.json not provided).")
+        print("[INFO] Running in local Database mode (serviceAccountKey.json not found).")
     
     return MockFirestoreClient()
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoSphere AI — Every Green Action Shapes Tomorrow</title>
     <meta name="description" content="EcoSphere AI is a premium, venture-backed-style AI sustainability companion that helps you track carbon metrics, analyze waste, and build an evolving digital ecosystem.">
-    <link rel="stylesheet" href="/static/css/style.css?v=scannervoice15">
+    <link rel="stylesheet" href="/static/css/style.css?v=ecotools16">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -1288,17 +1288,38 @@
             <!-- ==========================================
                  MARKETPLACE VIEW
                  ========================================== -->
-            <div id="view-marketplace" style="display: none; padding: 40px; width: 100%;">
-                <div style="margin-bottom: 30px;">
-                    <h2>Eco Marketplace</h2>
-                    <p class="text-secondary">Redeem your earned Eco Coins for validated carbon removal programs, tree planting campaigns, or premium themes.</p>
+            <div id="view-marketplace" style="display: none; flex-direction: column; width: 100%; height: calc(100vh - 65px); overflow-y: auto; padding: 28px 36px 40px 36px; box-sizing: border-box; scrollbar-width: thin; scrollbar-color: rgba(52,211,153,0.3) transparent;">
+                <!-- Marketplace Header -->
+                <div class="marketplace-header" style="margin-bottom: 28px;">
+                    <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 8px;">
+                        <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, rgba(52,211,153,0.25), rgba(16,185,129,0.15)); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; border: 1px solid rgba(52,211,153,0.2);">
+                            🛒
+                        </div>
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.6rem;">Eco Marketplace</h2>
+                            <p class="text-secondary" style="margin: 3px 0 0 0; font-size: 0.82rem;">Redeem your Eco Coins for real-world impact — tree planting, carbon offsets & premium themes.</p>
+                        </div>
+                    </div>
+                    <!-- Stats bar -->
+                    <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px; background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.15); border-radius: 10px; padding: 8px 14px; font-size: 0.78rem; color: var(--text-secondary);">
+                            🌱 <span style="color: #34d399; font-weight: 600;">4 Rewards</span> Available
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.15); border-radius: 10px; padding: 8px 14px; font-size: 0.78rem; color: var(--text-secondary);">
+                            🪙 Balance: <span id="market-coins-display" style="color: #fbbf24; font-weight: 600; margin-left: 4px;">-- Coins</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.15); border-radius: 10px; padding: 8px 14px; font-size: 0.78rem; color: var(--text-secondary);">
+                            ♻️ Real-world verified impact
+                        </div>
+                    </div>
                 </div>
+                <!-- Cards Grid -->
                 <div class="marketplace-grid" id="marketplace-container">
                     <!-- Cards will be dynamically rendered here -->
-                    <div class="skeleton" style="height: 220px; border-radius: 20px;"></div>
-                    <div class="skeleton" style="height: 220px; border-radius: 20px;"></div>
-                    <div class="skeleton" style="height: 220px; border-radius: 20px;"></div>
-                    <div class="skeleton" style="height: 220px; border-radius: 20px;"></div>
+                    <div class="skeleton" style="height: 200px; border-radius: 20px;"></div>
+                    <div class="skeleton" style="height: 200px; border-radius: 20px;"></div>
+                    <div class="skeleton" style="height: 200px; border-radius: 20px;"></div>
+                    <div class="skeleton" style="height: 200px; border-radius: 20px;"></div>
                 </div>
             </div>
 
@@ -1355,118 +1376,134 @@
             <!-- ==========================================
                  ECO TOOLS VIEW (DETECTIVE, ANALYZER, GUIDE)
                  ========================================== -->
-            <div id="view-tools" style="display: none; padding: 40px; width: 100%;">
+            <div id="view-tools" style="display: none; flex-direction: column; width: 100%; height: calc(100vh - 65px); overflow: hidden; padding: 20px 24px; box-sizing: border-box;">
                 
-                <!-- Internal Tab Selectors -->
-                <div style="display: flex; gap: 15px; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px;">
-                    <button class="btn btn-secondary active-tool-tab" id="tab-detective" onclick="switchToolSubView('detective')" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 20px;">🕵️ Carbon Detective</button>
-                    <button class="btn btn-secondary" id="tab-receipt" onclick="switchToolSubView('receipt')" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 20px;">🧾 Receipt Analyzer</button>
-                    <button class="btn btn-secondary" id="tab-guide" onclick="switchToolSubView('guide')" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 20px;">♻️ Recycling Guide</button>
+                <!-- Tools Header Row -->
+                <div style="margin-bottom: 16px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; gap: 20px;">
+                    <!-- Premium Pill Tab Switcher -->
+                    <div style="display: inline-flex; gap: 0; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 4px;">
+                        <button class="tool-tab active-tool-tab" id="tab-detective" onclick="switchToolSubView('detective')">Active Challenges</button>
+                        <button class="tool-tab" id="tab-receipt" onclick="switchToolSubView('receipt')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            Resources
+                        </button>
+                        <button class="tool-tab" id="tab-guide" onclick="switchToolSubView('guide')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            Leaderboards
+                        </button>
+                    </div>
+                    <!-- Right: Active Guides -->
+                    <div style="font-size: 0.78rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+                        <span id="lbl-active-guides-user" style="font-weight: 500;">John's</span>
+                        <span>Active Guides:</span>
+                        <a href="javascript:void(0)" style="color: var(--primary-emerald); text-decoration: none; font-weight: 500;">Carbon Tools Suite</a><span>,</span>
+                        <a href="javascript:void(0)" style="color: var(--primary-emerald); text-decoration: none; font-weight: 500;">Adventure Guide</a>
+                    </div>
                 </div>
 
                 <!-- SUB-VIEW 1: CARBON DETECTIVE -->
-                <div id="sub-tool-detective" class="tool-subview" style="display: block;">
-                    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px;">
+                <div id="sub-tool-detective" class="tool-subview" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+                    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; height: 100%; min-height: 0;">
                         
                         <!-- Footprint Estimator Sliders -->
-                        <div class="card" style="display: flex; flex-direction: column; gap: 20px; max-height: 680px; overflow-y: auto; scrollbar-width: thin;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <h3>Carbon Footprint Estimator</h3>
+                        <div class="card" style="display: flex; flex-direction: column; gap: 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <h3 style="font-size: 0.95rem; margin: 0;">Carbon Footprint Estimator</h3>
                                 <!-- Daily / Weekly / Monthly / Yearly Selector -->
-                                <select id="estimator-scope" onchange="runCarbonDetective()" style="background: #112018; border: 1px solid var(--border-color); color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; outline: none;">
+                                <select id="estimator-scope" onchange="runCarbonDetective()" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 4px 8px; border-radius: 8px; font-size: 0.74rem; outline: none;">
                                     <option value="yearly" selected>Yearly View</option>
                                     <option value="monthly">Monthly View</option>
                                     <option value="weekly">Weekly View</option>
                                     <option value="daily">Daily View</option>
                                 </select>
                             </div>
-                            <p class="text-secondary" style="font-size: 0.8rem;">Adjust your lifestyle stats. Active transits (bike/walk) will offset your footprint!</p>
+                            <p class="text-secondary" style="font-size: 0.72rem; margin-bottom: 8px;">Adjust your lifestyle stats. Active commutes offset your footprint!</p>
                             
-                            <div class="estimator-slider-group" style="display: flex; flex-direction: column; gap: 15px; margin-top: 5px;">
+                            <div class="estimator-slider-group">
                                 <!-- Transportation: Car -->
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                <div class="slider-row">
+                                    <div class="slider-label">
                                         <span class="text-secondary">🚗 Car Driving Distance</span>
                                         <span style="color: var(--secondary-cyan); font-weight: 600;"><span id="val-car">150</span> km/week</span>
                                     </div>
                                     <input type="range" id="slide-car" min="0" max="800" value="150" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--secondary-cyan);">
                                 </div>
                                 <!-- Transportation: Public Transit -->
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                <div class="slider-row">
+                                    <div class="slider-label">
                                         <span class="text-secondary">🚌 Bus / Train Commutes</span>
                                         <span style="color: var(--primary-emerald); font-weight: 600;"><span id="val-transit">50</span> km/week</span>
                                     </div>
                                     <input type="range" id="slide-transit" min="0" max="400" value="50" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--primary-emerald);">
                                 </div>
                                 <!-- Transportation: Active (Bike/Walk) -->
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                <div class="slider-row">
+                                    <div class="slider-label">
                                         <span class="text-secondary">🚲 Active Commutes (Bike/Walk)</span>
                                         <span style="color: var(--accent-lime); font-weight: 600;"><span id="val-active">10</span> km/week</span>
                                     </div>
                                     <input type="range" id="slide-active" min="0" max="100" value="10" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--accent-lime);">
                                 </div>
                                 <!-- Transportation: Flights -->
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                <div class="slider-row">
+                                    <div class="slider-label">
                                         <span class="text-secondary">✈️ Air Travel / Flights</span>
                                         <span style="color: var(--warning); font-weight: 600;"><span id="val-flight">12</span> hours/year</span>
                                     </div>
                                     <input type="range" id="slide-flight" min="0" max="100" value="12" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--warning);">
                                 </div>
                                 <!-- Utilities: Electricity -->
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                <div class="slider-row">
+                                    <div class="slider-label">
                                         <span class="text-secondary">💡 Monthly Electricity Usage</span>
                                         <span style="color: var(--secondary-cyan); font-weight: 600;"><span id="val-elec">250</span> kWh</span>
                                     </div>
                                     <input type="range" id="slide-elec" min="50" max="1200" value="250" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--secondary-cyan);">
                                 </div>
                                 <!-- Utilities: Water -->
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                <div class="slider-row">
+                                    <div class="slider-label">
                                         <span class="text-secondary">💧 Daily Water Usage</span>
                                         <span style="color: var(--primary-emerald); font-weight: 600;"><span id="val-water">150</span> Liters</span>
                                     </div>
                                     <input type="range" id="slide-water" min="20" max="500" value="150" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--primary-emerald);">
                                 </div>
                                 <!-- Lifestyle: Food/Diet -->
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                <div class="slider-row">
+                                    <div class="slider-label">
                                         <span class="text-secondary">🍔 Diet Carbon Type</span>
-                                        <span id="label-diet" style="color: var(--accent-lime); font-weight: 600;">Average (Mixed)</span>
+                                        <span id="label-diet" style="color: var(--accent-lime); font-weight: 600;">Vegetarian (Medium)</span>
                                     </div>
-                                    <input type="range" id="slide-diet" min="1" max="4" value="2" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--accent-lime);">
+                                    <input type="range" id="slide-diet" min="1" max="4" value="3" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--accent-lime);">
                                 </div>
                                 <!-- Lifestyle: Shopping Spend -->
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                <div class="slider-row">
+                                    <div class="slider-label">
                                         <span class="text-secondary">🛍️ Monthly Shopping Outlays</span>
                                         <span style="color: var(--warning); font-weight: 600;">$<span id="val-shopping">200</span></span>
                                     </div>
                                     <input type="range" id="slide-shopping" min="0" max="1500" step="50" value="200" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--warning);">
                                 </div>
                                 <!-- Lifestyle: Plastic Usage -->
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                <div class="slider-row">
+                                    <div class="slider-label">
                                         <span class="text-secondary">🥤 Single-Use Plastics</span>
                                         <span style="color: var(--danger); font-weight: 600;"><span id="val-plastic">10</span> items/week</span>
                                     </div>
                                     <input type="range" id="slide-plastic" min="0" max="80" value="10" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--danger);">
                                 </div>
                                 <!-- Lifestyle: Internet Usage -->
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
-                                        <span class="text-secondary">🌐 Daily Active Screen Time</span>
+                                <div class="slider-row">
+                                    <div class="slider-label">
+                                        <span class="text-secondary">🌐 Daily Screen Time</span>
                                         <span style="color: var(--secondary-cyan); font-weight: 600;"><span id="val-internet">6</span> hours</span>
                                     </div>
                                     <input type="range" id="slide-internet" min="1" max="18" value="6" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--secondary-cyan);">
                                 </div>
                                 <!-- Lifestyle: Home Appliances -->
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
-                                        <span class="text-secondary">🔌 Active High-Power Appliances</span>
+                                <div class="slider-row">
+                                    <div class="slider-label">
+                                        <span class="text-secondary">🔌 High-Power Appliances</span>
                                         <span style="color: var(--warning); font-weight: 600;"><span id="val-appliances">3</span> devices</span>
                                     </div>
                                     <input type="range" id="slide-appliances" min="0" max="10" value="3" oninput="runCarbonDetective()" style="width: 100%; accent-color: var(--warning);">
@@ -1475,41 +1512,91 @@
                         </div>
 
                         <!-- Carbon Hotspot & Chart breakdown column -->
-                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
                             
-                            <!-- Diagnostic summary score -->
-                            <div class="card" style="display: flex; flex-direction: column; gap: 12px;">
-                                <h3>Detective Hotspot Diagnostic</h3>
-                                <div style="text-align: center; padding: 15px 0; background: rgba(0,0,0,0.15); border-radius: 16px; border: 1px solid var(--border-color);">
-                                    <span class="text-secondary" style="font-size: 0.7rem; display: block; text-transform: uppercase; letter-spacing: 0.05em;"><span id="lbl-scope-title">Yearly</span> Footprint Output</span>
-                                    <div style="font-size: 2.4rem; font-family: var(--font-number); font-weight: 700; color: #fff; line-height: 1.1;"><span id="detective-total">4.8</span> <span style="font-size: 1rem; font-weight: normal; color: var(--text-secondary);">Tons CO₂</span></div>
-                                </div>
+                            <!-- Combined Diagnostic score & breakdown chart card -->
+                            <div class="card" style="display: flex; flex-direction: column; gap: 8px; padding: 12px;">
+                                <h3 style="font-size: 0.95rem; margin: 0;">Detective Hotspot Diagnostic &amp; Breakdown</h3>
                                 
-                                <div id="card-hotspot" style="padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 93, 115, 0.2); background: rgba(255, 93, 115, 0.03); display: flex; align-items: flex-start; gap: 10px; margin-top: 5px;">
-                                    <span style="font-size: 1.2rem;">⚠️</span>
-                                    <div>
-                                        <h4 style="font-size: 0.8rem; font-weight: 600; color: var(--danger); margin-bottom: 2px;">Highest Hotspot: <span id="lbl-hotspot-name">Driving Commuting</span></h4>
-                                        <p id="lbl-hotspot-desc" style="font-size: 0.7rem; color: var(--text-secondary); line-height: 1.3;">Checking...</p>
+                                <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 10px; align-items: center;">
+                                    <!-- Left side: Output Score & Hotspot Warning -->
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <div style="text-align: center; padding: 6px 0; background: linear-gradient(135deg, rgba(0,0,0,0.25), rgba(52,211,153,0.04)); border-radius: 10px; border: 1px solid rgba(52,211,153,0.1);">
+                                            <span class="text-secondary" style="font-size: 0.6rem; display: block; text-transform: uppercase; letter-spacing: 0.08em;"><span id="lbl-scope-title">Yearly</span> Footprint Output</span>
+                                            <div style="font-size: 2rem; font-family: var(--font-number); font-weight: 800; background: linear-gradient(135deg, #fff, #a7f3d0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; margin: 1px 0;"><span id="detective-total">4.8</span></div>
+                                            <span style="font-size: 0.7rem; color: var(--text-secondary);">Tons CO₂</span>
+                                        </div>
+                                        
+                                        <div id="card-hotspot" style="padding: 6px 8px; border-radius: 8px; border: 1px solid rgba(255, 93, 115, 0.2); background: rgba(255, 93, 115, 0.04); display: flex; align-items: flex-start; gap: 6px;">
+                                            <span style="font-size: 0.9rem;">⚠️</span>
+                                            <div>
+                                                <h4 style="font-size: 0.7rem; font-weight: 600; color: var(--danger); margin-bottom: 1px;">Highest Hotspot: <span id="lbl-hotspot-name">Driving Commuting</span></h4>
+                                                <p id="lbl-hotspot-desc" style="font-size: 0.63rem; color: var(--text-secondary); line-height: 1.25; margin: 0;">Checking...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Right side: Donut Chart -->
+                                    <div style="height: 135px; display: flex; align-items: center; justify-content: center; position: relative;">
+                                        <canvas id="chart-detective-breakdown" style="max-height: 130px; width: 100%;"></canvas>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Breakdown chart card -->
-                            <div class="card" style="height: 250px; display: flex; flex-direction: column; gap: 8px;">
-                                <h3>Footprint Breakdown</h3>
-                                <div style="flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center;">
-                                    <canvas id="chart-detective-breakdown" style="max-height: 180px;"></canvas>
-                                </div>
-                            </div>
-
                             <!-- Stored History and Save button -->
-                            <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <h3 style="font-size: 0.9rem;">Footprint Logging History</h3>
-                                    <button class="btn btn-primary" onclick="logFootprintHistory()" style="padding: 4px 10px; font-size: 0.75rem;">Log Current Stats</button>
+                            <div class="card" style="display: flex; flex-direction: column; gap: 0; padding: 12px 14px; flex: 1; min-height: 0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                        <h3 style="font-size: 0.85rem; margin: 0;">Footprint History</h3>
+                                    </div>
+                                    <button class="btn btn-primary" onclick="logFootprintHistory()" style="padding: 4px 10px; font-size: 0.7rem; border-radius: 8px;">Log Current</button>
                                 </div>
-                                <div style="max-height: 100px; overflow-y: auto; scrollbar-width: thin;" id="footprint-history-list">
-                                    <p class="text-secondary" style="font-size: 0.7rem; text-align: center; padding: 10px 0;">No calculation history logs stored yet.</p>
+                                <div style="flex: 1; overflow-y: auto; scrollbar-width: thin;" id="footprint-history-list">
+                                    <!-- Pre-populated demo history rows -->
+                                    <div class="fp-history-row">
+                                        <span class="fp-hist-icon">🌿</span>
+                                        <span class="fp-hist-time">11:42 am (YEARLY audit)</span>
+                                        <span class="fp-hist-val">6.0 kg CO<sub>2</sub></span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                    <div class="fp-history-row">
+                                        <span class="fp-hist-icon">🌿</span>
+                                        <span class="fp-hist-time">11:42 am (YEARLY audit)</span>
+                                        <span class="fp-hist-val">6.0 kg CO<sub>2</sub></span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                    <div class="fp-history-row">
+                                        <span class="fp-hist-icon">🌿</span>
+                                        <span class="fp-hist-time">11:42 am (YEARLY audit)</span>
+                                        <span class="fp-hist-val">6.0 kg CO<sub>2</sub></span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                    <div class="fp-history-row">
+                                        <span class="fp-hist-icon">🌿</span>
+                                        <span class="fp-hist-time">11:42 am (YEARLY audit)</span>
+                                        <span class="fp-hist-val">6.0 kg CO<sub>2</sub></span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                    <div class="fp-history-row">
+                                        <span class="fp-hist-icon">🌿</span>
+                                        <span class="fp-hist-time">11:42 am (YEARLY audit)</span>
+                                        <span class="fp-hist-val">6.0 kg CO<sub>2</sub></span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                    <div class="fp-history-row">
+                                        <span class="fp-hist-icon">🌿</span>
+                                        <span class="fp-hist-time">11:42 am (YEARLY audit)</span>
+                                        <span class="fp-hist-val">6.0 kg CO<sub>2</sub></span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                </div>
+                                <!-- View All History Footer -->
+                                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; margin-top: 6px; display: flex; justify-content: center;">
+                                    <button onclick="toggleAllHistory()" style="background: none; border: none; color: var(--primary-emerald); font-size: 0.75rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                        View All History
+                                        <svg id="history-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+                                    </button>
                                 </div>
                             </div>
 
@@ -1518,66 +1605,68 @@
                 </div>
 
                 <!-- SUB-VIEW 2: RECEIPT ANALYZER -->
-                <div id="sub-tool-receipt" class="tool-subview" style="display: none;">
-                    <div class="card">
-                        <h3>Green Receipt Analyzer</h3>
-                        <p class="text-secondary" style="margin-bottom: 20px;">Upload a copy of your shopping receipt or drag list inputs to analyze food offsets and alternatives.</p>
+                <div id="sub-tool-receipt" class="tool-subview" style="display: none; flex-direction: column; flex: 1; min-height: 0; height: 100%;">
+                    <div class="card" style="display: flex; flex-direction: column; flex: 1; min-height: 0; height: 100%; overflow-y: auto; gap: 0;">
+                        <h3 style="font-size: 1.1rem; margin: 0 0 4px 0;">Green Receipt Analyzer</h3>
+                        <p class="text-secondary" style="margin: 0 0 16px 0; font-size: 0.8rem;">Upload a copy of your shopping receipt or drag list inputs to analyze food offsets and alternatives.</p>
                         
-                        <div id="receipt-drag-area" style="border: 2px dashed var(--border-color); border-radius: 12px; padding: 40px; text-align: center; color: var(--text-secondary); cursor: pointer;"
+                        <div id="receipt-drag-area" style="border: 2px dashed var(--border-color); border-radius: 12px; padding: 24px; text-align: center; color: var(--text-secondary); cursor: pointer; flex-shrink: 0; background: rgba(0, 0, 0, 0.12);"
                              ondragover="event.preventDefault()" ondrop="handleReceiptDrop(event)" onclick="document.getElementById('receipt-file').click()">
                             Drag & Drop Grocery Receipts Here to Analyze (PET bottles, grocery lists, beef steak lines...)
                             <input type="file" id="receipt-file" style="display: none;" onchange="handleReceiptFile(event)">
                         </div>
 
                         <!-- Analysis results table -->
-                        <div id="receipt-results-container" style="display: none; margin-top: 30px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 20px;">
+                        <div id="receipt-results-container" style="display: none; margin-top: 20px; flex: 1; min-height: 0; display: flex; flex-direction: column;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; margin-bottom: 12px; flex-shrink: 0;">
                                 <div>
-                                    <h3 style="font-size: 1.1rem;">Receipt Impact Breakdown</h3>
-                                    <span style="font-size: 0.75rem; color: var(--text-secondary);">Highest Carbon Hotspot: <strong id="rec-hotspot" style="color: var(--danger);">Beef Steak</strong></span>
+                                    <h3 style="font-size: 0.95rem; margin: 0;">Receipt Impact Breakdown</h3>
+                                    <span style="font-size: 0.72rem; color: var(--text-secondary);">Highest Carbon Hotspot: <strong id="rec-hotspot" style="color: var(--danger);">Beef Steak</strong></span>
                                 </div>
                                 <div style="text-align: right;">
-                                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--accent-lime); font-family: var(--font-number);"><span id="rec-total-carbon">11.6</span> kg CO₂</div>
-                                    <span style="font-size: 0.75rem; color: var(--text-muted);">Shopping Grade: <strong id="rec-grade" style="color: var(--warning);">D</strong></span>
+                                    <div style="font-size: 1.3rem; font-weight: bold; color: var(--accent-lime); font-family: var(--font-number);"><span id="rec-total-carbon">11.6</span> kg CO₂</div>
+                                    <span style="font-size: 0.72rem; color: var(--text-muted);">Shopping Grade: <strong id="rec-grade" style="color: var(--warning);">D</strong></span>
                                 </div>
                             </div>
 
-                            <table class="receipt-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
-                                <thead>
-                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-secondary); height: 40px;">
-                                        <th style="padding: 10px 0;">Item Name</th>
-                                        <th>Category</th>
-                                        <th>Carbon Footprint</th>
-                                        <th>Green Alternative Recommendation</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="receipt-table-body">
-                                    <!-- Populated dynamically -->
-                                </tbody>
-                            </table>
+                            <div style="flex: 1; overflow-y: auto; scrollbar-width: thin;">
+                                <table class="receipt-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                                    <thead style="position: sticky; top: 0; background: var(--surface-card-solid); z-index: 10;">
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-secondary); height: 36px;">
+                                            <th style="padding: 8px 0; background: inherit;">Item Name</th>
+                                            <th style="background: inherit;">Category</th>
+                                            <th style="background: inherit;">Carbon Footprint</th>
+                                            <th style="background: inherit;">Green Alternative Recommendation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="receipt-table-body">
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- SUB-VIEW 3: RECYCLING GUIDE -->
-                <div id="sub-tool-guide" class="tool-subview" style="display: none;">
-                    <div class="card">
-                        <h3>Interactive Recycling Guide</h3>
-                        <p class="text-secondary" style="margin-bottom: 20px;">Quick-reference catalog explaining plastic resin numbers (1-7) and common waste preparation methods.</p>
+                <div id="sub-tool-guide" class="tool-subview" style="display: none; flex-direction: column; flex: 1; min-height: 0; height: 100%;">
+                    <div class="card" style="display: flex; flex-direction: column; flex: 1; min-height: 0; height: 100%; overflow-y: auto; gap: 0;">
+                        <h3 style="font-size: 1.1rem; margin: 0 0 4px 0;">Interactive Recycling Guide</h3>
+                        <p class="text-secondary" style="margin: 0 0 16px 0; font-size: 0.8rem;">Quick-reference catalog explaining plastic resin numbers (1-7) and common waste preparation methods.</p>
                         
                         <!-- Search Box -->
-                        <div style="margin-bottom: 25px; display: flex; gap: 10px;">
-                            <input type="text" id="guide-search-input" placeholder="Search any waste item (e.g. laptop, phone, plastic bottle, battery, glass)..." style="flex: 1; background: #112018; border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 12px; outline: none; font-size: 0.85rem;" onkeypress="handleGuideSearchKey(event)">
-                            <button class="btn btn-primary" onclick="searchGuideItem()" style="padding: 10px 20px; font-size: 0.85rem; border-radius: 12px;">Search Item</button>
+                        <div style="margin-bottom: 16px; display: flex; gap: 10px; flex-shrink: 0;">
+                            <input type="text" id="guide-search-input" placeholder="Search any waste item (e.g. laptop, phone, plastic bottle, battery, glass)..." style="flex: 1; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: #fff; padding: 10px 14px; border-radius: 10px; outline: none; font-size: 0.8rem;" onkeypress="handleGuideSearchKey(event)">
+                            <button class="btn btn-primary" onclick="searchGuideItem()" style="padding: 10px 18px; font-size: 0.8rem; border-radius: 10px;">Search Item</button>
                         </div>
                         
                         <!-- Search Result Display Box -->
-                        <div id="guide-search-result" style="display: none; padding: 20px; background: rgba(0, 212, 255, 0.03); border: 1px solid rgba(0, 212, 255, 0.15); border-radius: 16px; margin-bottom: 25px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; margin-bottom: 12px;">
-                                <h4 style="font-size: 1rem; color: #fff;" id="guide-res-title">PET Plastic Bottle</h4>
-                                <span class="reward-tag" id="guide-res-recyclable" style="background: rgba(61,220,132,0.15); color: var(--accent-lime);">Recyclable</span>
+                        <div id="guide-search-result" style="display: none; padding: 14px; background: rgba(0, 212, 255, 0.03); border: 1px solid rgba(0, 212, 255, 0.15); border-radius: 12px; margin-bottom: 16px; flex-shrink: 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-bottom: 8px;">
+                                <h4 style="font-size: 0.9rem; color: #fff; margin: 0;" id="guide-res-title">PET Plastic Bottle</h4>
+                                <span class="reward-tag" id="guide-res-recyclable" style="background: rgba(61,220,132,0.15); color: var(--accent-lime); padding: 2px 8px; border-radius: 8px; font-size: 0.7rem;">Recyclable</span>
                             </div>
-                            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; line-height: 1.4;">
+                            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.74rem; line-height: 1.35;">
                                 <div><strong class="text-secondary">Category:</strong> <span id="guide-res-category">Plastic</span></div>
                                 <div><strong class="text-secondary">Disposal Suggestion:</strong> <span id="guide-res-disposal">Rinse cap and throw in Blue Curbside Bin.</span></div>
                                 <div><strong class="text-secondary">Reuse Ideas:</strong> <span id="guide-res-reuse">Use as a seed starter container.</span></div>
@@ -1585,66 +1674,67 @@
                             </div>
                         </div>
 
-                        <div class="recycling-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+                        <div class="recycling-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; flex: 1; overflow-y: auto; padding: 2px;">
                             <!-- Code 1 -->
-                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 1.6rem; color: var(--primary-emerald); font-weight: bold; margin-bottom: 5px;">♻️ 1</div>
-                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">PET / PETE</h4>
-                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Polyester soda bottles, water jars. High recycling rate. Please rinse.</p>
-                                <span class="reward-tag reward-xp" style="margin-top: 8px; display: inline-block;">Highly Recyclable</span>
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.4rem; color: var(--primary-emerald); font-weight: bold; margin-bottom: 4px;">♻️ 1</div>
+                                <h4 style="font-size: 0.78rem; font-weight: bold; color: #fff;">PET / PETE</h4>
+                                <p style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.35;">Polyester soda bottles, water jars. High recycling rate. Please rinse.</p>
+                                <span class="reward-tag reward-xp" style="margin-top: 8px; display: inline-block; padding: 2px 8px; font-size: 0.65rem;">Highly Recyclable</span>
                             </div>
                             <!-- Code 2 -->
-                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 1.6rem; color: var(--primary-emerald); font-weight: bold; margin-bottom: 5px;">♻️ 2</div>
-                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">HDPE</h4>
-                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Milk jugs, detergent bottles, shampoo tubes. Highly recyclable.</p>
-                                <span class="reward-tag reward-xp" style="margin-top: 8px; display: inline-block;">Highly Recyclable</span>
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.4rem; color: var(--primary-emerald); font-weight: bold; margin-bottom: 4px;">♻️ 2</div>
+                                <h4 style="font-size: 0.78rem; font-weight: bold; color: #fff;">HDPE</h4>
+                                <p style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.35;">Milk jugs, detergent bottles, shampoo tubes. Highly recyclable.</p>
+                                <span class="reward-tag reward-xp" style="margin-top: 8px; display: inline-block; padding: 2px 8px; font-size: 0.65rem;">Highly Recyclable</span>
                             </div>
                             <!-- Code 3 -->
-                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 1.6rem; color: var(--warning); font-weight: bold; margin-bottom: 5px;">♻️ 3</div>
-                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">PVC</h4>
-                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Pipes, vinyl wraps, toys. Contain toxins. Rarely recycled locally.</p>
-                                <span class="reward-tag reward-coins" style="margin-top: 8px; display: inline-block; background: rgba(255, 93, 115, 0.1); color: var(--danger);">Rarely Recyclable</span>
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.4rem; color: var(--warning); font-weight: bold; margin-bottom: 4px;">♻️ 3</div>
+                                <h4 style="font-size: 0.78rem; font-weight: bold; color: #fff;">PVC</h4>
+                                <p style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.35;">Pipes, vinyl wraps, toys. Contain toxins. Rarely recycled locally.</p>
+                                <span class="reward-tag reward-coins" style="margin-top: 8px; display: inline-block; background: rgba(255, 93, 115, 0.1); color: var(--danger); padding: 2px 8px; font-size: 0.65rem;">Rarely Recyclable</span>
                             </div>
                             <!-- Code 4 -->
-                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 1.6rem; color: var(--secondary-cyan); font-weight: bold; margin-bottom: 5px;">♻️ 4</div>
-                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">LDPE</h4>
-                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Squeeze bottles, shopping bags, shrink wrap. Special drop-off needed.</p>
-                                <span class="reward-tag reward-coins" style="margin-top: 8px; display: inline-block;">Special Recycle</span>
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.4rem; color: var(--secondary-cyan); font-weight: bold; margin-bottom: 4px;">♻️ 4</div>
+                                <h4 style="font-size: 0.78rem; font-weight: bold; color: #fff;">LDPE</h4>
+                                <p style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.35;">Squeeze bottles, shopping bags, shrink wrap. Special drop-off needed.</p>
+                                <span class="reward-tag reward-coins" style="margin-top: 8px; display: inline-block; padding: 2px 8px; font-size: 0.65rem;">Special Recycle</span>
                             </div>
                             <!-- Code 5 -->
-                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 1.6rem; color: var(--primary-emerald); font-weight: bold; margin-bottom: 5px;">♻️ 5</div>
-                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">PP</h4>
-                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Yogurt tubs, medicine bottles, caps. Accepted in some curbside programs.</p>
-                                <span class="reward-tag reward-xp" style="margin-top: 8px; display: inline-block;">Recyclable</span>
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.4rem; color: var(--primary-emerald); font-weight: bold; margin-bottom: 4px;">♻️ 5</div>
+                                <h4 style="font-size: 0.78rem; font-weight: bold; color: #fff;">PP</h4>
+                                <p style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.35;">Yogurt tubs, medicine bottles, caps. Accepted in some curbside programs.</p>
+                                <span class="reward-tag reward-xp" style="margin-top: 8px; display: inline-block; padding: 2px 8px; font-size: 0.65rem;">Recyclable</span>
                             </div>
                             <!-- Code 6 -->
-                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 1.6rem; color: var(--warning); font-weight: bold; margin-bottom: 5px;">♻️ 6</div>
-                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">PS (Polystyrene)</h4>
-                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Styrofoam cups, takeout boxes. Toxic chemicals. Avoid if possible.</p>
-                                <span class="reward-tag reward-coins" style="margin-top: 8px; display: inline-block; background: rgba(255, 93, 115, 0.1); color: var(--danger);">Avoid / Do Not Recycle</span>
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.4rem; color: var(--warning); font-weight: bold; margin-bottom: 4px;">♻️ 6</div>
+                                <h4 style="font-size: 0.78rem; font-weight: bold; color: #fff;">PS (Polystyrene)</h4>
+                                <p style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.35;">Styrofoam cups, takeout boxes. Toxic chemicals. Avoid if possible.</p>
+                                <span class="reward-tag reward-coins" style="margin-top: 8px; display: inline-block; background: rgba(255, 93, 115, 0.1); color: var(--danger); padding: 2px 8px; font-size: 0.65rem;">Avoid / Do Not Recycle</span>
                             </div>
                             <!-- Code 7 -->
-                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 1.6rem; color: var(--warning); font-weight: bold; margin-bottom: 5px;">♻️ 7</div>
-                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">OTHER</h4>
-                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Fiberglass, acrylic, composites, mixed resin. Cannot be recycled.</p>
-                                <span class="reward-tag reward-coins" style="margin-top: 8px; display: inline-block; background: rgba(255, 93, 115, 0.1); color: var(--danger);">Non-Recyclable</span>
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.4rem; color: var(--warning); font-weight: bold; margin-bottom: 4px;">♻️ 7</div>
+                                <h4 style="font-size: 0.78rem; font-weight: bold; color: #fff;">OTHER</h4>
+                                <p style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.35;">Fiberglass, acrylic, composites, mixed resin. Cannot be recycled.</p>
+                                <span class="reward-tag reward-coins" style="margin-top: 8px; display: inline-block; background: rgba(255, 93, 115, 0.1); color: var(--danger); padding: 2px 8px; font-size: 0.65rem;">Non-Recyclable</span>
                             </div>
                             <!-- Compost -->
-                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 1.6rem; color: var(--accent-lime); font-weight: bold; margin-bottom: 5px;">🥬 ORGANIC</div>
-                                <h4 style="font-size: 0.8rem; font-weight: bold; color: #fff;">Compost Heap</h4>
-                                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.3;">Food scraps, coffee grounds, garden weeds. Diverts methane loads.</p>
-                                <span class="reward-tag reward-xp" style="margin-top: 8px; display: inline-block; background: rgba(199, 254, 115, 0.15); color: var(--accent-lime);">Highly Compostable</span>
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.4rem; color: var(--accent-lime); font-weight: bold; margin-bottom: 4px;">🥬 ORGANIC</div>
+                                <h4 style="font-size: 0.78rem; font-weight: bold; color: #fff;">Compost Heap</h4>
+                                <p style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.35;">Food scraps, coffee grounds, garden weeds. Diverts methane loads.</p>
+                                <span class="reward-tag reward-xp" style="margin-top: 8px; display: inline-block; background: rgba(199, 254, 115, 0.15); color: var(--accent-lime); padding: 2px 8px; font-size: 0.65rem;">Highly Compostable</span>
                             </div>
                         </div>
                     </div>
                 </div>
+
 
             </div>
             <!-- ==========================================

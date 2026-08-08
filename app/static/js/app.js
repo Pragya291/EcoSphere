@@ -177,7 +177,11 @@ function switchView(viewName) {
   
   // Show active view
   const targetView = document.getElementById(`view-${viewName}`);
-  if (targetView) targetView.style.display = viewName === 'dashboard' ? 'grid' : 'block';
+  if (targetView) {
+    if (viewName === 'dashboard') targetView.style.display = 'grid';
+    else if (viewName === 'marketplace' || viewName === 'tools') targetView.style.display = 'flex';
+    else targetView.style.display = 'block';
+  }
   
   const activeMenu = document.getElementById(`menu-${viewName}`);
   if (activeMenu) activeMenu.classList.add("active");
@@ -210,6 +214,13 @@ function switchView(viewName) {
   
   if (viewName === 'tools') {
     runCarbonDetective();
+    // Update the "Active Guides" username label
+    const guidesUserEl = document.getElementById('lbl-active-guides-user');
+    if (guidesUserEl) {
+      const usernameEl = document.getElementById('lbl-username');
+      const username = usernameEl ? usernameEl.textContent.split(' ')[0] : 'John';
+      guidesUserEl.textContent = username + "'s";
+    }
   }
   
   if (viewName === 'passport') {
@@ -1698,17 +1709,36 @@ function loadMarketplace(items) {
     { id: "premium_theme", title: "Glassmorphism Themes", description: "Unlock Cyberpunk Neon and Sahara design overlays.", cost: 80, category: "Cosmetics", reward_text: "Premium Themes unlocked!" }
   ];
   
+  const categoryMeta = {
+    "Action":    { icon: "🌱", badge: "", accent: "rgba(52,211,153,0.12)", glow: "#34d399" },
+    "Donation":  { icon: "🌊", badge: "badge-donation", accent: "rgba(96,165,250,0.1)", glow: "#60a5fa" },
+    "Offset":    { icon: "🌿", badge: "badge-offset", accent: "rgba(167,139,250,0.1)", glow: "#a78bfa" },
+    "Cosmetics": { icon: "✨", badge: "badge-cosmetics", accent: "rgba(251,191,36,0.1)", glow: "#fbbf24" }
+  };
+  
+  // Update coins balance display in header
+  const coinDisplay = document.getElementById("market-coins-display");
+  if (coinDisplay && state.profile) coinDisplay.textContent = `${state.profile.coins} Coins`;
+  
   marketplaceItemsData.forEach(item => {
+    const meta = categoryMeta[item.category] || categoryMeta["Action"];
+    const canAfford = state.profile && state.profile.coins >= item.cost;
     const card = document.createElement("div");
     card.className = "card market-item glass-shine";
+    card.style.background = `linear-gradient(135deg, ${meta.accent} 0%, rgba(255,255,255,0.02) 100%)`;
     card.innerHTML = `
-      <span class="item-badge">${item.category}</span>
-      <h3 style="margin-top: 15px; font-size: 1.1rem; color: #fff;">${item.title}</h3>
-      <p class="market-desc" style="margin-top: 6px;">${item.description}</p>
+      <span class="item-badge ${meta.badge}">${item.category}</span>
+      <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px; margin-bottom: 6px;">
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">${meta.icon}</div>
+        <h3 style="margin: 0; font-size: 0.95rem; color: #fff; line-height: 1.3;">${item.title}</h3>
+      </div>
+      <p class="market-desc">${item.description}</p>
       
       <div class="market-action">
-        <span style="font-family: var(--font-number); font-weight: 600; color: var(--secondary-cyan); font-size: 1.05rem;">🪙 ${item.cost} Coins</span>
-        <button class="btn btn-primary btn-buy" onclick="buyMarketplaceItem('${item.id}', ${item.cost})">Redeem</button>
+        <span style="font-family: var(--font-number); font-weight: 700; color: #fbbf24; font-size: 0.95rem;">🪙 ${item.cost}</span>
+        <button class="btn-buy" onclick="buyMarketplaceItem('${item.id}', ${item.cost})" ${canAfford ? '' : 'style="opacity:0.5;"'}>
+          ${canAfford ? 'Redeem' : 'Need more'}
+        </button>
       </div>
     `;
     container.appendChild(card);
@@ -2360,7 +2390,7 @@ function speakCoachReply(text) {
 function switchToolSubView(name) {
   document.querySelectorAll('.tool-subview').forEach(div => div.style.display = 'none');
   const target = document.getElementById(`sub-tool-${name}`);
-  if (target) target.style.display = 'block';
+  if (target) target.style.display = 'flex';
   
   document.getElementById('tab-detective').classList.remove('active-tool-tab');
   document.getElementById('tab-receipt').classList.remove('active-tool-tab');
@@ -2532,7 +2562,7 @@ function logFootprintHistory() {
   const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   
   footprintHistory.unshift({ total, scope, time: timestamp });
-  if (footprintHistory.length > 3) footprintHistory.pop();
+  if (footprintHistory.length > 20) footprintHistory.pop();
   
   renderFootprintHistory();
   triggerToast("Calculation logged to history timeline!", "success");
@@ -2550,17 +2580,27 @@ function renderFootprintHistory() {
   
   footprintHistory.forEach(h => {
     const div = document.createElement('div');
-    div.style.display = 'flex';
-    div.style.justify = 'space-between';
-    div.style.fontSize = '0.75rem';
-    div.style.padding = '6px 8px';
-    div.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
+    div.className = 'fp-history-row';
     div.innerHTML = `
-      <span style="color: var(--text-secondary);">${h.time} (${h.scope} audit)</span>
-      <strong style="color: #fff;">${h.total} ${h.scope === 'Yearly' ? 'Tons' : 'kg'} CO₂</strong>
+      <span class="fp-hist-icon">🌿</span>
+      <span class="fp-hist-time">${h.time} (${h.scope} audit)</span>
+      <span class="fp-hist-val">${h.total} kg CO<sub>2</sub></span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
     `;
     container.appendChild(div);
   });
+}
+
+let _historyExpanded = true;
+function toggleAllHistory() {
+  const list = document.getElementById('footprint-history-list');
+  const chevron = document.getElementById('history-chevron');
+  if (!list) return;
+  _historyExpanded = !_historyExpanded;
+  list.style.display = _historyExpanded ? '' : 'none';
+  if (chevron) {
+    chevron.style.transform = _historyExpanded ? '' : 'rotate(180deg)';
+  }
 }
 
 function handleReceiptDrop(e) {
