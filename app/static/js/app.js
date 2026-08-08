@@ -2749,3 +2749,54 @@ function changeAvatar() {
   }
   triggerToast(`Avatar changed to ${next}`, 'success');
 }
+
+/* ==========================================
+   LANDING PAGE MODAL CONTROLLERS (Features, How It Works, About)
+   ========================================== */
+function showLandingModal(tabName) {
+  // Update nav active pill and states
+  const navTabs = ['home', 'features', 'how-it-works', 'about'];
+  navTabs.forEach(t => {
+    const linkEl = document.getElementById('nav-link-' + t);
+    if (linkEl) linkEl.classList.remove('active');
+  });
+
+  const activeLink = document.getElementById('nav-link-' + tabName);
+  if (activeLink) activeLink.classList.add('active');
+
+  if (tabName === 'home') {
+    closeLandingModal();
+    return;
+  }
+
+  // Hide all modals
+  document.querySelectorAll('.landing-modal-overlay').forEach(m => m.classList.add('hidden'));
+
+  // Show target modal
+  const targetModal = document.getElementById('modal-' + tabName);
+  if (targetModal) {
+    targetModal.classList.remove('hidden');
+    announceAccessibility(`Opening ${tabName.replace('-', ' ')} modal view.`);
+  }
+}
+
+function closeLandingModal() {
+  document.querySelectorAll('.landing-modal-overlay').forEach(m => m.classList.add('hidden'));
+  
+  // Reset nav active pill to Home
+  const navTabs = ['features', 'how-it-works', 'about'];
+  navTabs.forEach(t => {
+    const linkEl = document.getElementById('nav-link-' + t);
+    if (linkEl) linkEl.classList.remove('active');
+  });
+
+  const homeLink = document.getElementById('nav-link-home');
+  if (homeLink) homeLink.classList.add('active');
+}
+
+// ESC Key listener for landing modals
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeLandingModal();
+  }
+});

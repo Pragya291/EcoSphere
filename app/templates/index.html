@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoSphere AI — Every Green Action Shapes Tomorrow</title>
     <meta name="description" content="EcoSphere AI is a premium, venture-backed-style AI sustainability companion that helps you track carbon metrics, analyze waste, and build an evolving digital ecosystem.">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=enlarge_no_github_v9">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -36,41 +36,372 @@
     <div id="landing-view" class="landing-view">
         <canvas id="landing-canvas"></canvas>
         
-        <nav class="landing-nav">
-            <div class="brand">
-                <div class="brand-icon">E</div>
-                <span>EcoSphere AI</span>
-            </div>
-            <div>
-                <button class="btn btn-secondary" onclick="toggleScreenReaderAnnounce('Accessibility settings can be toggled using the bottom panel in the dashboard.')">Sponsors</button>
-            </div>
-        </nav>
+        <!-- Header Navigation Bar -->
+        <header class="landing-header">
+            <div class="landing-nav-container">
+                <div class="brand" onclick="showLandingModal('home')">
+                    <div class="brand-icon">E</div>
+                    <span class="brand-title">EcoSphere AI</span>
+                </div>
 
-        <div class="landing-hero">
-            <div class="hero-badge">🏆 Hackathon Prototype Edition</div>
-            <h1>Every Green Action<br>Shapes Tomorrow</h1>
-            <p>An AI-powered sustainability companion helping you reduce carbon footprints, scan waste categories, and nurture an evolving living digital ecosystem.</p>
-            
-            <div class="hero-ctas">
-                <button class="btn btn-primary" id="btn-start" onclick="startJourney()">
-                    Start Your Journey
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </button>
-                <button class="btn btn-secondary" onclick="triggerToast('Watch Demo video coming soon!', 'info')">
-                    Watch Live Demo
-                </button>
+                <nav class="nav-links">
+                    <a href="javascript:void(0)" class="nav-link active" id="nav-link-home" onclick="showLandingModal('home')">
+                        Home
+                        <span class="nav-active-pill"></span>
+                    </a>
+                    <a href="javascript:void(0)" class="nav-link" id="nav-link-features" onclick="showLandingModal('features')">Features</a>
+                    <a href="javascript:void(0)" class="nav-link" id="nav-link-how-it-works" onclick="showLandingModal('how-it-works')">How It Works</a>
+                    <a href="javascript:void(0)" class="nav-link" id="nav-link-about" onclick="showLandingModal('about')">About</a>
+                </nav>
+
+                <div class="nav-actions">
+                    <button class="btn btn-get-started" onclick="startJourney()">
+                        Get Started
+                        <svg class="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Hero Section -->
+        <main class="landing-hero-container">
+            <div class="hero-grid">
+                <!-- Left Column: Hero Text & Features -->
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        Every <span class="text-lime-gradient">Green Action</span><br>
+                        Shapes Tomorrow <span class="leaf-emoji">🍃</span>
+                    </h1>
+
+                    <p class="hero-subtitle">
+                        An AI-powered sustainability companion helping you reduce carbon footprints, scan waste categories, and nurture an evolving living digital ecosystem.
+                    </p>
+
+                    <!-- 3 Feature Pills Horizontal Row -->
+                    <div class="hero-feature-pills">
+                        <div class="feature-pill" onclick="showLandingModal('features')" style="cursor: pointer;">
+                            <div class="feature-pill-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52e065" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="4" width="16" height="16" rx="4"></rect>
+                                    <rect x="9" y="9" width="6" height="6" rx="1"></rect>
+                                    <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"></path>
+                                </svg>
+                            </div>
+                            <div class="feature-pill-text">
+                                <span class="pill-title">AI Powered</span>
+                                <span class="pill-subtitle">Smart Insights</span>
+                            </div>
+                        </div>
+
+                        <div class="feature-pill" onclick="showLandingModal('how-it-works')" style="cursor: pointer;">
+                            <div class="feature-pill-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52e065" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
+                                    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
+                                </svg>
+                            </div>
+                            <div class="feature-pill-text">
+                                <span class="pill-title">Real Impact</span>
+                                <span class="pill-subtitle">Track & Improve</span>
+                            </div>
+                        </div>
+
+                        <div class="feature-pill" onclick="showLandingModal('about')" style="cursor: pointer;">
+                            <div class="feature-pill-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#52e065" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                    <path d="m9 12 2 2 4-4"></path>
+                                </svg>
+                            </div>
+                            <div class="feature-pill-text">
+                                <span class="pill-title">Secure & Private</span>
+                                <span class="pill-subtitle">Your Data Matters</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Primary CTAs Row -->
+                    <div class="hero-cta-row">
+                        <button class="btn btn-hero-primary" id="btn-start" onclick="startJourney()">
+                            <span>Start Your Journey</span>
+                            <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+
+                        <div class="social-proof-pill" onclick="showLandingModal('about')" style="cursor: pointer;">
+                            <div class="avatar-stack">
+                                <div class="avatar-circle av-1">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                </div>
+                                <div class="avatar-circle av-2">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                </div>
+                                <div class="avatar-circle av-3">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                </div>
+                                <div class="avatar-circle av-4">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                </div>
+                            </div>
+                            <div class="social-proof-info">
+                                <span class="proof-number">850K+</span>
+                                <span class="proof-label">Active Users</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Glowing Globe Visual -->
+                <div class="hero-visual-column">
+                    <div class="globe-visual-wrapper">
+                        <div class="globe-ambient-glow"></div>
+                        <img src="/static/images/hero_globe.png" alt="Glowing EcoSphere Globe" class="globe-hero-img">
+                        <div class="butterfly-element butterfly-1">🦋</div>
+                        <div class="butterfly-element butterfly-2">🦋</div>
+                        <div class="floating-leaf leaf-1">🍃</div>
+                        <div class="floating-leaf leaf-2">🌿</div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Floating Interactive Globe Visual -->
-            <div class="hero-visual">
-                <svg viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="0.5" stroke-dasharray="2,2"/>
-                    <!-- Simple map contours representing continents -->
-                    <path d="M 25 40 Q 30 25 50 30 T 70 35 T 80 50 T 60 70 T 35 60 Z" fill="none" stroke="currentColor" stroke-width="1"/>
-                    <path d="M 40 45 Q 45 48 50 45 T 60 48" fill="none" stroke="currentColor" stroke-width="0.75"/>
-                    <circle cx="50" cy="50" r="1" fill="currentColor"/>
-                    <circle cx="65" cy="40" r="1.5" fill="currentColor"/>
-                </svg>
+            <!-- Horizontal 5 Stat Cards Bar (Bottom of Hero) -->
+            <div class="hero-stats-row">
+                <!-- Stat Card 1 -->
+                <div class="stat-card" onclick="showLandingModal('about')" style="cursor: pointer;">
+                    <div class="stat-card-header">
+                        <div class="stat-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#52e065" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"></path>
+                                <path d="M12 12v9"></path>
+                            </svg>
+                        </div>
+                        <span class="stat-arrow">↗</span>
+                    </div>
+                    <div class="stat-metric">1M+</div>
+                    <div class="stat-label">Trees Saved</div>
+                    <div class="stat-badge"><span class="badge-dot"></span> Live Impact</div>
+                </div>
+
+                <!-- Stat Card 2 -->
+                <div class="stat-card" onclick="showLandingModal('about')" style="cursor: pointer;">
+                    <div class="stat-card-header">
+                        <div class="stat-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#52e065" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
+                            </svg>
+                        </div>
+                        <span class="stat-arrow">↗</span>
+                    </div>
+                    <div class="stat-metric">850K+</div>
+                    <div class="stat-label">Active Users</div>
+                    <div class="stat-badge"><span class="badge-dot"></span> Live Now</div>
+                </div>
+
+                <!-- Stat Card 3 -->
+                <div class="stat-card" onclick="showLandingModal('about')" style="cursor: pointer;">
+                    <div class="stat-card-header">
+                        <div class="stat-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#52e065" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                            </svg>
+                        </div>
+                        <span class="stat-arrow">↗</span>
+                    </div>
+                    <div class="stat-metric">120+</div>
+                    <div class="stat-label">Countries</div>
+                    <div class="stat-badge"><span class="badge-dot"></span> Growing Together</div>
+                </div>
+
+                <!-- Stat Card 4 -->
+                <div class="stat-card" onclick="showLandingModal('features')" style="cursor: pointer;">
+                    <div class="stat-card-header">
+                        <div class="stat-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#52e065" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
+                            </svg>
+                        </div>
+                        <span class="stat-arrow">↗</span>
+                    </div>
+                    <div class="stat-metric">2.4M+ <span class="unit">kg</span></div>
+                    <div class="stat-label">CO₂ Reduced</div>
+                    <div class="stat-badge"><span class="badge-dot"></span> Live Impact</div>
+                </div>
+
+                <!-- Stat Card 5 -->
+                <div class="stat-card" onclick="showLandingModal('how-it-works')" style="cursor: pointer;">
+                    <div class="stat-card-header">
+                        <div class="stat-icon-box">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#52e065" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                        </div>
+                        <span class="stat-arrow">↗</span>
+                    </div>
+                    <div class="stat-metric">3.6M+ <span class="unit">kWh</span></div>
+                    <div class="stat-label">Energy Saved</div>
+                    <div class="stat-badge"><span class="badge-dot"></span> Live Impact</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ==========================================
+             INTERACTIVE LANDING MODALS (Features, How It Works, About)
+             ========================================== -->
+
+        <!-- Modal: Features -->
+        <div id="modal-features" class="landing-modal-overlay hidden" onclick="if(event.target===this) closeLandingModal();">
+            <div class="landing-modal-card">
+                <button class="modal-close-btn" onclick="closeLandingModal()">×</button>
+                <div class="modal-badge">✨ Core Innovations</div>
+                <h2 class="modal-title">EcoSphere AI Key Features</h2>
+                <p class="modal-subtitle">Comprehensive AI tools designed to turn individual sustainability into collective climate action.</p>
+                
+                <div class="features-grid-modal">
+                    <div class="feature-card-modal">
+                        <div class="feature-card-icon">🤖</div>
+                        <h3>AI Waste & Emission Scanner</h3>
+                        <p>Real-time computer vision scans item images or utility bills to instant-classify recycling vs compost and estimate CO₂ footprints.</p>
+                    </div>
+
+                    <div class="feature-card-modal">
+                        <div class="feature-card-icon">📊</div>
+                        <h3>Real-Time Eco Telemetry</h3>
+                        <p>Automated telemetry calculates energy vampire loads, household kWh consumption, and commute carbon metrics in real time.</p>
+                    </div>
+
+                    <div class="feature-card-modal">
+                        <div class="feature-card-icon">🌱</div>
+                        <h3>Living Digital Ecosystem</h3>
+                        <p>Nurture an evolving 3D digital plant that grows as you complete verified real-world green actions and reduce household emissions.</p>
+                    </div>
+
+                    <div class="feature-card-modal">
+                        <div class="feature-card-icon">🛒</div>
+                        <h3>Circular Eco Marketplace</h3>
+                        <p>Redeem earned Eco Coins for verified carbon offset certificates, sustainable merchandise, or real-world tree planting.</p>
+                    </div>
+
+                    <div class="feature-card-modal">
+                        <div class="feature-card-icon">🛂</div>
+                        <h3>Verifiable Eco Passport</h3>
+                        <p>Track your lifetime sustainability journey with immutable certificates, level badges, and verifiable carbon credit history.</p>
+                    </div>
+
+                    <div class="feature-card-modal">
+                        <div class="feature-card-icon">👥</div>
+                        <h3>Global Leaderboard & Community</h3>
+                        <p>Join 850K+ sustainability champions across 120+ countries competing in monthly carbon reduction challenges.</p>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-hero-primary" onclick="closeLandingModal(); startJourney();">
+                        <span>Launch App & Try Features</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeLandingModal()">Return to Start</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: How It Works -->
+        <div id="modal-how-it-works" class="landing-modal-overlay hidden" onclick="if(event.target===this) closeLandingModal();">
+            <div class="landing-modal-card">
+                <button class="modal-close-btn" onclick="closeLandingModal()">×</button>
+                <div class="modal-badge">🚀 Simple 4-Step Journey</div>
+                <h2 class="modal-title">How EcoSphere AI Works</h2>
+                <p class="modal-subtitle">Transform daily habits into measurable global climate impact in 4 seamless steps.</p>
+
+                <div class="steps-container-modal">
+                    <div class="step-card-modal">
+                        <div class="step-number">01</div>
+                        <div class="step-body">
+                            <h3>Snap & Scan</h3>
+                            <p>Capture photos of waste, food packaging, or utility receipts. Our AI identifies material composition instantly.</p>
+                        </div>
+                    </div>
+
+                    <div class="step-card-modal">
+                        <div class="step-number">02</div>
+                        <div class="step-body">
+                            <h3>AI Carbon Audit</h3>
+                            <p>Algorithms calculate precise CO₂ savings, energy reductions, and provide tailored micro-habit recommendations.</p>
+                        </div>
+                    </div>
+
+                    <div class="step-card-modal">
+                        <div class="step-number">03</div>
+                        <div class="step-body">
+                            <h3>Earn XP & Eco Coins</h3>
+                            <p>Get rewarded for every eco-friendly action. Level up your profile and climb global sustainability rankings.</p>
+                        </div>
+                    </div>
+
+                    <div class="step-card-modal">
+                        <div class="step-number">04</div>
+                        <div class="step-body">
+                            <h3>Reforest & Grow</h3>
+                            <p>Convert Eco Coins into real-world tree planting projects and watch your living 3D digital ecosystem thrive.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-hero-primary" onclick="closeLandingModal(); startJourney();">
+                        <span>Start Your Eco Journey</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeLandingModal()">Back to Home</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: About -->
+        <div id="modal-about" class="landing-modal-overlay hidden" onclick="if(event.target===this) closeLandingModal();">
+            <div class="landing-modal-card">
+                <button class="modal-close-btn" onclick="closeLandingModal()">×</button>
+                <div class="modal-badge">🌍 Our Climate Mission</div>
+                <h2 class="modal-title">About EcoSphere AI</h2>
+                <p class="modal-subtitle">Dedicated to empowering 1 Billion people to take daily, measurable climate action using artificial intelligence.</p>
+
+                <div class="about-stats-grid">
+                    <div class="about-stat-box">
+                        <span class="about-stat-num">1,000,000+</span>
+                        <span class="about-stat-lbl">Trees Planted Worldwide</span>
+                    </div>
+                    <div class="about-stat-box">
+                        <span class="about-stat-num">2.4M+ kg</span>
+                        <span class="about-stat-lbl">CO₂ Emissions Avoided</span>
+                    </div>
+                    <div class="about-stat-box">
+                        <span class="about-stat-num">850,000+</span>
+                        <span class="about-stat-lbl">Active Eco Champions</span>
+                    </div>
+                    <div class="about-stat-box">
+                        <span class="about-stat-num">120+</span>
+                        <span class="about-stat-lbl">Countries Connected</span>
+                    </div>
+                </div>
+
+                <div class="about-tech-stack">
+                    <h3>Powered By Advanced AI Telemetry</h3>
+                    <p>EcoSphere AI integrates Computer Vision Models for real-time waste analysis, Groq LPU LLM inference for hyper-personalized sustainability advice, and real-time carbon telemetry algorithms.</p>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-hero-primary" onclick="closeLandingModal(); startJourney();">
+                        <span>Join EcoSphere AI</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeLandingModal()">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -78,107 +409,127 @@
     <!-- ==========================================
          AUTHENTICATION VIEW CONTAINER
          ========================================== -->
-    <div id="auth-view" class="landing-view hidden" style="background: radial-gradient(circle at 50% 30%, #0d1e16 0%, #08120d 80%); justify-content: center; align-items: center;">
-        <div class="card" id="auth-card" style="width: 100%; max-width: 450px; padding: 40px; border-radius: 24px; position: relative;">
-            <button class="modal-close" onclick="exitAuthView()" style="top: 15px; right: 20px;">×</button>
+    <!-- ==========================================
+         AUTHENTICATION VIEW CONTAINER (ENHANCED AUTH MODAL)
+         ========================================== -->
+    <div id="auth-view" class="auth-view-overlay hidden">
+        <div class="auth-card-modern" id="auth-card">
+            <button class="auth-close-btn" onclick="exitAuthView()" title="Close">×</button>
             
-            <div style="text-align: center; margin-bottom: 30px;">
-                <div class="brand-icon" style="margin: 0 auto 12px; width: 45px; height: 45px; font-size: 1.3rem;">E</div>
-                <h2 id="auth-title" style="font-size: 1.8rem; background: linear-gradient(to right, #ffffff, #8beab0); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Sign In to EcoSphere</h2>
-                <p id="auth-subtitle" class="text-secondary" style="font-size: 0.85rem; margin-top: 6px;">Enter your credentials to access your Eco Dashboard</p>
+            <div class="auth-header">
+                <div class="auth-brand-icon">E</div>
+                <h2 id="auth-title" class="auth-main-title">Sign In to EcoSphere</h2>
+                <p id="auth-subtitle" class="auth-sub-title">Enter your credentials to access your Eco Dashboard</p>
             </div>
 
             <!-- Login Form -->
-            <form id="form-login" onsubmit="submitLogin(event)" style="display: flex; flex-direction: column; gap: 18px;">
+            <form id="form-login" onsubmit="submitLogin(event)" class="auth-form-container">
                 <div class="form-group">
-                    <label for="login-email" class="form-label" style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">Email Address</label>
-                    <input type="email" id="login-email" class="chat-input" placeholder="name@domain.com" required style="width: 100%;">
+                    <label for="login-email" class="auth-form-label">Email Address</label>
+                    <div class="auth-input-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <input type="email" id="login-email" class="auth-custom-input" placeholder="name@domain.com" required autocomplete="email">
+                    </div>
                 </div>
                 
                 <div class="form-group">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label for="login-pass" class="form-label" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0;">Password</label>
-                        <a href="#" onclick="showForgotPassword()" style="font-size: 0.75rem; color: var(--secondary-cyan);">Forgot password?</a>
+                    <div class="auth-label-row">
+                        <label for="login-pass" class="auth-form-label">Password</label>
+                        <a href="javascript:void(0)" onclick="showForgotPassword()" class="auth-forgot-link">Forgot password?</a>
                     </div>
-                    <input type="password" id="login-pass" class="chat-input" placeholder="••••••••" required style="width: 100%;">
+                    <div class="auth-input-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <input type="password" id="login-pass" class="auth-custom-input" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
-                    Access Dashboard
+                <button type="submit" class="btn btn-auth-primary">
+                    <span>Access Dashboard</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
                 
-                <p class="text-secondary" style="font-size: 0.8rem; text-align: center; margin-top: 10px;">
-                    Don't have an account? <a href="#" onclick="toggleAuthMode('register')" style="color: var(--primary-emerald); font-weight: 500;">Create account</a>
+                <p class="auth-toggle-text">
+                    Don't have an account? <a href="javascript:void(0)" onclick="toggleAuthMode('register')" class="auth-green-link">Create account</a>
                 </p>
             </form>
 
             <!-- Registration Form -->
-            <form id="form-register" onsubmit="submitRegister(event)" style="display: none; flex-direction: column; gap: 18px;">
+            <form id="form-register" onsubmit="submitRegister(event)" class="auth-form-container" style="display: none;">
                 <div class="form-group">
-                    <label for="register-name" class="form-label" style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">Full Name</label>
-                    <input type="text" id="register-name" class="chat-input" placeholder="Jane Doe" required style="width: 100%;">
+                    <label for="register-name" class="auth-form-label">Full Name</label>
+                    <div class="auth-input-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <input type="text" id="register-name" class="auth-custom-input" placeholder="Jane Doe" required autocomplete="name">
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="register-email" class="form-label" style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">Email Address</label>
-                    <input type="email" id="register-email" class="chat-input" placeholder="name@domain.com" required style="width: 100%;">
+                    <label for="register-email" class="auth-form-label">Email Address</label>
+                    <div class="auth-input-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <input type="email" id="register-email" class="auth-custom-input" placeholder="name@domain.com" required autocomplete="email">
+                    </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="register-pass" class="form-label" style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">Password</label>
-                    <input type="password" id="register-pass" class="chat-input" placeholder="Min. 6 characters" required oninput="evaluatePasswordStrength(this.value)" style="width: 100%;">
+                    <label for="register-pass" class="auth-form-label">Password</label>
+                    <div class="auth-input-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <input type="password" id="register-pass" class="auth-custom-input" placeholder="Min. 6 characters" required oninput="evaluatePasswordStrength(this.value)" autocomplete="new-password">
+                    </div>
                     
                     <!-- Password strength indicator -->
-                    <div style="margin-top: 8px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 4px;">
+                    <div class="pass-strength-container">
+                        <div class="pass-strength-header">
                             <span>Strength: <strong id="pass-strength-label" style="color: var(--danger);">Weak</strong></span>
                         </div>
-                        <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden;">
-                            <div id="pass-strength-bar" style="width: 0%; height: 100%; background: var(--danger); transition: var(--transition-smooth);"></div>
+                        <div class="pass-strength-track">
+                            <div id="pass-strength-bar" class="pass-strength-bar"></div>
                         </div>
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
-                    Nurture Your EcoSphere
+                <button type="submit" class="btn btn-auth-primary">
+                    <span>Nurture Your EcoSphere</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
                 
-                <p class="text-secondary" style="font-size: 0.8rem; text-align: center; margin-top: 10px;">
-                    Already have an account? <a href="#" onclick="toggleAuthMode('login')" style="color: var(--primary-emerald); font-weight: 500;">Sign in instead</a>
+                <p class="auth-toggle-text">
+                    Already have an account? <a href="javascript:void(0)" onclick="toggleAuthMode('login')" class="auth-green-link">Sign in instead</a>
                 </p>
             </form>
 
             <!-- Forgot Password Form -->
-            <form id="form-forgot" onsubmit="submitForgotPasswordForm(event)" style="display: none; flex-direction: column; gap: 18px;">
+            <form id="form-forgot" onsubmit="submitForgotPasswordForm(event)" class="auth-form-container" style="display: none;">
                 <div class="form-group">
-                    <label for="forgot-email" class="form-label" style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">Email Address</label>
-                    <input type="email" id="forgot-email" class="chat-input" placeholder="name@domain.com" required style="width: 100%;">
+                    <label for="forgot-email" class="auth-form-label">Email Address</label>
+                    <div class="auth-input-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <input type="email" id="forgot-email" class="auth-custom-input" placeholder="name@domain.com" required autocomplete="email">
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
-                    Send Reset Link
+                <button type="submit" class="btn btn-auth-primary">
+                    <span>Send Reset Link</span>
                 </button>
                 
-                <p class="text-secondary" style="font-size: 0.8rem; text-align: center; margin-top: 10px;">
-                    Remember your password? <a href="#" onclick="toggleAuthMode('login')" style="color: var(--primary-emerald); font-weight: 500;">Sign in instead</a>
+                <p class="auth-toggle-text">
+                    Remember your password? <a href="javascript:void(0)" onclick="toggleAuthMode('login')" class="auth-green-link">Sign in instead</a>
                 </p>
             </form>
 
-
             <!-- Social Logins Separator -->
-            <div style="display: flex; align-items: center; text-align: center; margin: 25px 0 20px; color: var(--text-muted); font-size: 0.75rem;">
-                <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.05);"></div>
-                <span style="margin: 0 10px;">OR SECURE SIGN IN</span>
-                <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.05);"></div>
+            <div class="auth-separator">
+                <div class="sep-line"></div>
+                <span class="sep-text">OR SECURE SIGN IN</span>
+                <div class="sep-line"></div>
             </div>
 
             <!-- Social Buttons -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <button class="btn btn-secondary" onclick="socialLogin('Google')" style="font-size: 0.8rem; justify-content: center; height: 42px;">
-                    Google
-                </button>
-                <button class="btn btn-secondary" onclick="socialLogin('GitHub')" style="font-size: 0.8rem; justify-content: center; height: 42px;">
-                    GitHub
+            <div class="social-btn-grid" style="grid-template-columns: 1fr;">
+                <button class="btn btn-social-dark" onclick="socialLogin('Google')" style="width: 100%;">
+                    <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.4 8.9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.3 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.6 7.4C.6 9.4 0 11.6 0 14s.6 4.6 1.6 6.6l3.7-2.9c-.2-.7-.3-1.4-.3-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.4-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z"/></svg>
+                    <span>Continue with Google</span>
                 </button>
             </div>
         </div>
