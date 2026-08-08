@@ -2664,38 +2664,120 @@ function setText(id, val) {
 }
 
 function renderHeatmap(streak) {
-  const container = document.getElementById('profile-heatmap');
-  if (!container) return;
-  container.innerHTML = '';
+  // Legacy heatmap container (kept for compatibility)
+  const legacyContainer = document.getElementById('profile-heatmap');
+  if (legacyContainer) legacyContainer.innerHTML = '';
+
+  // New grid container: Mon/Wed/Fri rows × 12 weeks columns
+  const grid = document.getElementById('profile-heatmap-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
 
   const WEEKS = 12;
-  const DAYS  = 7;
+  const ROWS = [
+    { label: 'Mon', dayIndex: 0 },
+    { label: 'Wed', dayIndex: 2 },
+    { label: 'Fri', dayIndex: 4 }
+  ];
 
+  // Pre-generate 12 weeks × 7 days of activity
+  const actData = [];
   for (let w = 0; w < WEEKS; w++) {
-    const weekDiv = document.createElement('div');
-    weekDiv.className = 'heatmap-week';
-
-    for (let d = 0; d < DAYS; d++) {
-      const cell = document.createElement('div');
-      // Simulate activity: recent weeks more active
-      const totalDaysAgo = (WEEKS - 1 - w) * 7 + (DAYS - 1 - d);
+    const week = [];
+    for (let d = 0; d < 7; d++) {
+      const daysAgo = (WEEKS - 1 - w) * 7 + (6 - d);
       let level = 0;
-      if (totalDaysAgo < streak) {
-        level = 4; // active streak days
-      } else if (totalDaysAgo < streak + 4) {
+      if (daysAgo < streak) {
+        level = 4;
+      } else if (daysAgo < streak + 5) {
         level = Math.floor(Math.random() * 2) + 1;
       } else {
-        // random historical activity
         const r = Math.random();
-        level = r > 0.6 ? 0 : r > 0.35 ? 1 : r > 0.18 ? 2 : r > 0.07 ? 3 : 4;
+        level = r > 0.55 ? 0 : r > 0.3 ? 1 : r > 0.15 ? 2 : r > 0.06 ? 3 : 4;
       }
-      cell.className = `heatmap-cell heatmap-${level}`;
-      cell.title = `${totalDaysAgo} days ago`;
-      weekDiv.appendChild(cell);
+      week.push(level);
     }
-    container.appendChild(weekDiv);
+    actData.push(week);
   }
+
+  const colors = [
+    'rgba(82,224,101,0.08)',
+    'rgba(82,224,101,0.3)',
+    'rgba(82,224,101,0.55)',
+    'rgba(82,224,101,0.78)',
+    '#52e065'
+  ];
+
+  ROWS.forEach(row => {
+    const rowDiv = document.createElement('div');
+    rowDiv.style.cssText = 'display:grid; grid-template-columns:28px repeat(12,1fr); gap:3px; align-items:center;';
+
+    const labelDiv = document.createElement('div');
+    labelDiv.textContent = row.label;
+    labelDiv.style.cssText = 'font-size:0.58rem; color:#475569; text-align:right; padding-right:4px;';
+    rowDiv.appendChild(labelDiv);
+
+    for (let w = 0; w < WEEKS; w++) {
+      const cell = document.createElement('div');
+      const level = actData[w][row.dayIndex];
+      cell.style.cssText = `height:11px; border-radius:2px; background:${colors[level]}; cursor:pointer;`;
+      const daysAgo = (WEEKS - 1 - w) * 7 + (6 - row.dayIndex);
+      cell.title = `${daysAgo} days ago — level ${level}`;
+      rowDiv.appendChild(cell);
+    }
+    grid.appendChild(rowDiv);
+  });
 }
+
+
+function showAllAchievements() {
+  const achievements = [
+    { icon: '♻️', name: 'Waste Warrior',   desc: 'Recycled 10 kg of waste',      date: 'Aug 24, 2026', coins: 120, color: 'rgba(82,224,101,0.3)' },
+    { icon: '🌲', name: 'Tree Planter',     desc: 'Planted 1 tree',                date: 'Aug 21, 2026', coins: 150, color: 'rgba(82,224,101,0.3)' },
+    { icon: '🔥', name: 'Streak Master',    desc: 'Maintained a 6-day streak',     date: 'Aug 20, 2026', coins: 100, color: 'rgba(249,115,22,0.3)' },
+    { icon: '🔍', name: 'Eco Explorer',     desc: 'Completed 10 Eco Challenges',   date: 'Aug 15, 2026', coins: 200, color: 'rgba(0,212,255,0.3)'   },
+    { icon: '🚲', name: 'Green Commuter',   desc: 'Used eco transport 5 times',    date: 'Aug 10, 2026', coins: 80,  color: 'rgba(82,224,101,0.3)' },
+    { icon: '💧', name: 'Water Saver',      desc: 'Saved 100L of water',           date: 'Aug 5, 2026',  coins: 90,  color: 'rgba(0,212,255,0.3)'   },
+    { icon: '⚡', name: 'Energy Guardian',  desc: 'Reduced energy use by 20%',     date: 'Jul 30, 2026', coins: 110, color: 'rgba(199,254,115,0.3)' },
+    { icon: '🥗', name: 'Plant Pioneer',    desc: 'Logged 7 plant-based meals',    date: 'Jul 22, 2026', coins: 75,  color: 'rgba(82,224,101,0.3)' },
+  ];
+
+  // Build modal HTML
+  const rows = achievements.map(a => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+      <div style="width:38px;height:38px;border-radius:50%;background:${a.color};display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">${a.icon}</div>
+      <div style="flex:1;">
+        <div style="font-size:0.82rem;font-weight:700;color:#fff;">${a.name}</div>
+        <div style="font-size:0.68rem;color:#64748b;">${a.desc}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:0.62rem;color:#475569;">${a.date}</div>
+        <div style="font-size:0.72rem;font-weight:700;color:#f9a826;">+${a.coins} 🪙</div>
+      </div>
+    </div>`).join('');
+
+  // Create or reuse modal
+  let modal = document.getElementById('all-achievements-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'all-achievements-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:3000;display:none;align-items:center;justify-content:center;';
+    modal.innerHTML = `
+      <div style="width:100%;max-width:480px;background:linear-gradient(135deg,#0d1f14,#081208);border:1px solid rgba(82,224,101,0.3);border-radius:20px;padding:24px;position:relative;max-height:80vh;display:flex;flex-direction:column;">
+        <button onclick="document.getElementById('all-achievements-modal').style.display='none'" style="position:absolute;top:14px;right:16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#94a3b8;width:30px;height:30px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+        <h3 style="font-size:1rem;font-weight:800;color:#fff;margin:0 0 4px;">🏆 All Achievements</h3>
+        <p style="font-size:0.7rem;color:#64748b;margin:0 0 14px;">Your complete eco-accomplishment history</p>
+        <div id="all-achievements-list" style="overflow-y:auto;flex:1;"></div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+  document.getElementById('all-achievements-list').innerHTML = rows;
+  modal.style.display = 'flex';
+
+  // Close on backdrop click
+  modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+}
+
 
 function openEditProfile() {
   const stored = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || '{}');
