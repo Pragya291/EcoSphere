@@ -156,11 +156,13 @@
                     </div>
                 </div>
 
-                <!-- Right Column: Glowing Globe Visual -->
+                <!-- Right Column: 3D Earth Visual -->
                 <div class="hero-visual-column">
                     <div class="globe-visual-wrapper">
                         <div class="globe-ambient-glow"></div>
-                        <img src="/static/images/hero_globe.png" alt="Glowing EcoSphere Globe" class="globe-hero-img">
+                        <div class="globe-ring globe-ring-1"></div>
+                        <div class="globe-ring globe-ring-2"></div>
+                        <img src="/static/images/cf60b3d2-badf-48fb-b3b8-e85af565dec4.png" alt="3D Earth" class="globe-hero-img">
                         <div class="butterfly-element butterfly-1">🦋</div>
                         <div class="butterfly-element butterfly-2">🦋</div>
                         <div class="floating-leaf leaf-1">🍃</div>
@@ -1406,7 +1408,7 @@
                     <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; flex-shrink: 0;">
                         
                         <!-- Footprint Estimator Sliders -->
-                        <div class="card" style="display: flex; flex-direction: column; gap: 0;">
+                        <div class="card" style="display: flex; flex-direction: column; gap: 0; min-height: 0; overflow-y: auto;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                                 <h3 style="font-size: 0.95rem; margin: 0;">Carbon Footprint Estimator</h3>
                                 <!-- Daily / Weekly / Monthly / Yearly Selector -->
@@ -1512,7 +1514,7 @@
                         </div>
 
                         <!-- Carbon Hotspot & Chart breakdown column -->
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto;">
                             
                             <!-- Combined Diagnostic score & breakdown chart card -->
                             <div class="card" style="display: flex; flex-direction: column; gap: 8px; padding: 12px;">
@@ -1605,7 +1607,7 @@
                 </div>
 
                 <!-- Smart Recommendations Section -->
-                <div style="margin-top: 20px;">
+                <div style="margin-top: 20px; width: 100%; flex-shrink: 0;">
                     <div class="card" style="display: flex; flex-direction: column; gap: 14px; padding: 16px;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                             <span style="font-size: 1.2rem;">💡</span>

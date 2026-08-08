@@ -38,7 +38,7 @@ def scan_waste():
                 base64_image = base64_image.split(',')[1]
             image_bytes = base64.b64decode(base64_image)
 
-    result = analyze_waste_image(image_bytes, filename)
+    result = analyze_waste_image(image_bytes, filename) or {}
     
     # Prevent duplicate farming (same user scanning exact same material within 30 seconds)
     scans_ref = db.collection('scans')
@@ -85,13 +85,13 @@ def scan_waste():
         "scan_id": scan_id,
         "user_id": user_id,
         "filename": filename if filename else "camera_capture.jpg",
-        "material": result.get("material", "PET Plastic Bottle"),
-        "category": result.get("category", "Plastic Packaging"),
-        "confidence": result.get("confidence", 0.95),
-        "recyclable": result.get("recyclable", True),
-        "disposal_recommendation": result.get("disposal_recommendation", "Rinse and place in plastic recycling bin."),
-        "environmental_impact": result.get("environmental_impact", "Moderate"),
-        "eco_alternative": result.get("eco_alternative", "Use a reusable container."),
+        "material": result.get("material", "Unknown Waste Item"),
+        "category": result.get("category", "Unknown"),
+        "confidence": result.get("confidence", 0.45),
+        "recyclable": result.get("recyclable", False),
+        "disposal_recommendation": result.get("disposal_recommendation", "The item could not be confidently identified. Please retake the photo with clear lighting and a direct view."),
+        "environmental_impact": result.get("environmental_impact", "Unknown"),
+        "eco_alternative": result.get("eco_alternative", "Choose reusable and durable products whenever possible."),
         "explanation": result.get("explanation", "Scanned & analyzed by EcoSphere AI."),
         "is_uncertain": result.get("is_uncertain", False),
         "reuse_ideas": result.get("reuse_ideas", []),

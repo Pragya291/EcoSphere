@@ -1,5 +1,6 @@
 import pytest
 import json
+import uuid
 from app import create_app
 from app.services.firebase import db
 
@@ -31,10 +32,11 @@ def test_auth_flow(client):
     data = json.loads(res.data)
     assert data['logged_in'] is False
 
-    # 2. Register a new user
+    # 2. Register a new user with a unique email so repeated test runs do not collide
+    random_id = uuid.uuid4().hex[:8]
     user_payload = {
         "name": "Alex Mercer",
-        "email": "alex.mercer@ecosphere.com",
+        "email": f"alex.mercer+{random_id}@ecosphere.com",
         "password": "securepassword123"
     }
     res = client.post('/api/auth/register', json=user_payload)

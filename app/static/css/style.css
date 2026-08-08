@@ -510,10 +510,34 @@ a {
 .globe-visual-wrapper {
   position: relative;
   width: 100%;
-  max-width: 480px;
+  max-width: 760px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.globe-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(98, 224, 132, 0.22);
+  pointer-events: none;
+  filter: drop-shadow(0 0 16px rgba(82, 224, 101, 0.18));
+}
+
+.globe-ring-1 {
+  width: 500px;
+  height: 500px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.globe-ring-2 {
+  width: 420px;
+  height: 420px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .globe-ambient-glow {
@@ -532,14 +556,13 @@ a {
   z-index: 2;
   width: 100%;
   height: auto;
-  max-height: clamp(180px, 30vh, 320px);
+  max-height: clamp(420px, 55vh, 680px);
   object-fit: contain;
-  border-radius: 20px;
+  border-radius: 28px;
   mix-blend-mode: lighten;
-  mask-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 1) 55%, rgba(0, 0, 0, 0) 95%);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 1) 55%, rgba(0, 0, 0, 0) 95%);
-  filter: drop-shadow(0 0 30px rgba(82, 224, 101, 0.4));
-  animation: floatGlobe 6s ease-in-out infinite;
+  mask-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 1) 56%, rgba(0, 0, 0, 0) 96%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 1) 56%, rgba(0, 0, 0, 0) 96%);
+  box-shadow: 0 36px 90px rgba(0, 0, 0, 0.35), inset 0 0 28px rgba(255, 255, 255, 0.08);
 }
 
 .butterfly-element {

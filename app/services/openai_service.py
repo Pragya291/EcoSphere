@@ -42,6 +42,72 @@ def extract_json_payload(text):
     clean_text = clean_text.strip()
     return json.loads(clean_text)
 
+
+def infer_material_from_text(text):
+    """Infer a likely waste item from raw model text when strict JSON parsing fails."""
+    if not isinstance(text, str):
+        return None
+    lower = text.lower()
+    if "plastic bottle" in lower or "water bottle" in lower or ("bottle" in lower and "plastic" in lower):
+        item = SIMULATED_ITEMS[0].copy()
+        item["confidence"] = 0.72
+        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
+        return item
+    if "aluminum can" in lower or "soda can" in lower or "metal can" in lower or "can" in lower:
+        item = SIMULATED_ITEMS[1].copy()
+        item["confidence"] = 0.75
+        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
+        return item
+    if "banana peel" in lower or "apple core" in lower or "food waste" in lower or "organic" in lower:
+        item = SIMULATED_ITEMS[2].copy()
+        item["confidence"] = 0.78
+        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
+        return item
+    if "cardboard" in lower or "shipping box" in lower or "paper" in lower:
+        item = SIMULATED_ITEMS[3].copy()
+        item["confidence"] = 0.77
+        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
+        return item
+    if "glass jar" in lower or "glass bottle" in lower or "glass" in lower:
+        item = SIMULATED_ITEMS[4].copy()
+        item["confidence"] = 0.76
+        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
+        return item
+    if "smartphone" in lower or "phone" in lower or "electronic waste" in lower or "battery" in lower:
+        item = SIMULATED_ITEMS[5].copy()
+        item["confidence"] = 0.72
+        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
+        return item
+    if "reusable" in lower or "steel water bottle" in lower or "stainless steel" in lower:
+        item = SIMULATED_ITEMS[6].copy()
+        item["confidence"] = 0.76
+        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
+        return item
+    if "unknown" in lower or "could not" in lower or "cannot identify" in lower or "unidentifiable" in lower:
+        return {
+            "material": "Unknown Waste Item",
+            "category": "Unknown",
+            "confidence": 0.45,
+            "recyclable": False,
+            "disposal_recommendation": "The item could not be confidently identified. Please retake the photo with better lighting and a clear view, or consult local sorting guidelines.",
+            "environmental_impact": "Unknown - unclear item classification.",
+            "eco_alternative": "Choose reusable, durable, and low-waste products where possible.",
+            "explanation": "The scanner could not confidently classify this object from the provided image.",
+            "is_uncertain": True,
+            "reuse_ideas": [
+                "Retake the photo using a clear background and good lighting.",
+                "Compare the item with local recycling categories.",
+                "Bring the item to a nearby recycling center for expert sorting advice."
+            ],
+            "repair_ideas": [
+                "If the item is damaged, consider repairing or repurposing it rather than discarding it."
+            ],
+            "decomposition_time": "Unknown",
+            "co2_impact": 0.0,
+            "reward_earned": 25
+        }
+    return None
+
 client = None
 is_grok = False
 is_groq = False
@@ -326,7 +392,12 @@ def analyze_waste_image(image_bytes=None, filename=""):
                 )
                 res_content = response.choices[0].message.content
                 
-            parsed = extract_json_payload(res_content)
+            parsed = None
+            try:
+                parsed = extract_json_payload(res_content)
+            except Exception:
+                parsed = None
+
             if parsed and isinstance(parsed, dict) and "material" in parsed:
                 # Ensure default fallback values for any missing fields
                 parsed.setdefault("category", "General Waste")
@@ -337,11 +408,17 @@ def analyze_waste_image(image_bytes=None, filename=""):
                 parsed.setdefault("explanation", "Scanned and evaluated by EcoSphere Vision AI.")
                 parsed.setdefault("is_uncertain", False)
                 return parsed
+
+            # Attempt to infer material from raw text when the model response is not valid JSON
+            inferred = infer_material_from_text(res_content)
+            if inferred:
+                return inferred
         except Exception as e:
             print(f"OpenAI Vision API error: {e}. Falling back to smart keyword simulation.")
     
     # Keyword based simulation fallback
     fn_lower = filename.lower()
+    generic_filename = fn_lower in ["camera_capture.jpg", "cam_shot.jpg", "photo.jpg", "image.jpg", "scan.jpg", "receipt.jpg"]
     if "bottle" in fn_lower or "plastic" in fn_lower:
         return SIMULATED_ITEMS[0]
     elif "can" in fn_lower or "metal" in fn_lower or "aluminum" in fn_lower:
@@ -357,7 +434,31 @@ def analyze_waste_image(image_bytes=None, filename=""):
     elif "reusable" in fn_lower or "steel" in fn_lower:
         return SIMULATED_ITEMS[6]
     
-    # Pick a random item
+    # Use safer unknown fallback for generic or ambiguous filenames
+    if generic_filename or not any(keyword in fn_lower for keyword in ["bottle", "plastic", "can", "metal", "aluminum", "banana", "peel", "apple", "food", "organic", "box", "cardboard", "paper", "jar", "glass", "phone", "electronic", "battery", "ewaste", "reusable", "steel"]):
+        return {
+            "material": "Unknown Waste Item",
+            "category": "Unknown",
+            "confidence": 0.45,
+            "recyclable": False,
+            "disposal_recommendation": "The item could not be confidently identified. Please retake the photo with better lighting and a clear view, or consult local sorting guidelines.",
+            "environmental_impact": "Unknown - unclear item classification.",
+            "eco_alternative": "Choose reusable, durable, and low-waste products where possible.",
+            "explanation": "The scanner could not confidently classify this object from the provided image.",
+            "is_uncertain": True,
+            "reuse_ideas": [
+                "Retake the photo using a clear background and good lighting.",
+                "Compare the item with local recycling categories.",
+                "Bring the item to a nearby recycling center for expert sorting advice."
+            ],
+            "repair_ideas": [
+                "If the item is damaged, consider repairing or repurposing it rather than discarding it."
+            ],
+            "decomposition_time": "Unknown",
+            "co2_impact": 0.0,
+            "reward_earned": 25
+        }
+
     return random.choice(SIMULATED_ITEMS)
 
 def get_coach_response(chat_history, user_message, latest_scan=None):

@@ -131,6 +131,19 @@ def test_scan_waste(client):
     assert data['success'] is True
     assert data['scan']['material'] == "PET Plastic Bottle"
 
+def test_scan_waste_unknown_filename(client):
+    """Test scanning with a generic webcam filename does not default to plastic bottle."""
+    response = client.post('/api/scan', json={
+        'user_id': 'test_suite_user',
+        'image': 'data:image/jpeg;base64,dGVzdGltYWdl',
+        'filename': 'cam_shot.jpg'
+      })
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['success'] is True
+    assert data['scan']['material'] == "Unknown Waste Item"
+    assert data['scan']['is_uncertain'] is True
+
 def test_scan_receipt(client):
     """Test scanning a grocery receipt."""
     response = client.post('/api/scan/receipt', json={

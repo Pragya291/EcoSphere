@@ -1,4 +1,5 @@
 import os
+import glob
 import json
 import datetime
 import uuid
@@ -145,15 +146,38 @@ class MockFirestoreClient:
             del self.data[col_path][doc_id]
             self._save()
 
+def find_service_account_path():
+    """Find a valid Firebase Admin service account JSON file path."""
+    env_path = os.getenv('FIREBASE_CREDENTIALS_PATH', 'serviceAccountKey.json')
+    candidates = [env_path]
+
+    # Candidate locations relative to current working directory
+    if not os.path.isabs(env_path):
+        candidates.append(os.path.join(os.getcwd(), env_path))
+
+    # Common fallback filenames when export tools add an extra .json
+    candidates.extend([
+        'serviceAccountKey.json',
+        'serviceAccountKey.json.json'
+    ])
+
+    # Glob for any file that starts with serviceAccountKey and ends with .json
+    for filename in glob.glob('serviceAccountKey*.json'):
+        candidates.append(filename)
+
+    for path in candidates:
+        if path and os.path.exists(path):
+            return os.path.abspath(path)
+
+    return None
+
+
 def init_firebase():
     """Try to initialize Firebase Admin SDK, or fall back to MockFirestoreClient."""
-    cred_path = os.getenv('FIREBASE_CREDENTIALS_PATH', 'serviceAccountKey.json')
+    cred_path = find_service_account_path()
     project_id = os.getenv('FIREBASE_PROJECT_ID')
-    
-    if not os.path.exists(cred_path) and os.path.exists('serviceAccountKey.json.json'):
-        cred_path = 'serviceAccountKey.json.json'
-    
-    if os.path.exists(cred_path):
+
+    if cred_path:
         try:
             import firebase_admin
             from firebase_admin import credentials, firestore
@@ -168,8 +192,8 @@ def init_firebase():
         except Exception as e:
             print(f"[WARNING] Firebase Admin SDK initialization failed: {e}. Falling back to mock database.")
     else:
-        print("[INFO] Running in local Database mode (serviceAccountKey.json not found).")
-    
+        print("[INFO] Running in local Database mode (Firebase service account JSON not found).")
+
     return MockFirestoreClient()
 
 # Initialize database client
