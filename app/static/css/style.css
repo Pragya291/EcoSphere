@@ -2811,7 +2811,11 @@ button.btn-social-dark:hover {
 .estimator-slider-group {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 6px 12px;
+  gap: 12px 18px;
+}
+
+.estimator-slider-group > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
 @media (max-width: 1000px) {
@@ -2824,10 +2828,10 @@ button.btn-social-dark:hover {
   background: rgba(255, 255, 255, 0.015);
   border: 1px solid rgba(255, 255, 255, 0.02);
   border-radius: 8px;
-  padding: 4px 8px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 6px;
   transition: var(--transition-smooth);
 }
 

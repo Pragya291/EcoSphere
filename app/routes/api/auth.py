@@ -1,4 +1,5 @@
 import os
+import requests
 from flask import request, jsonify, session
 from app.routes.api import api_bp
 from app.services.firebase import db, verify_id_token
@@ -99,6 +100,52 @@ def login():
 
     if not email or not password:
         return jsonify({"success": False, "message": "Email and password are required."}), 400
+
+    from app.services.firebase import MockFirestoreClient
+    is_mock = isinstance(db, MockFirestoreClient)
+
+    if not is_mock:
+        api_key = os.getenv('FIREBASE_API_KEY')
+        if not api_key:
+            return jsonify({"success": False, "message": "Firebase API Key not configured."}), 500
+
+        try:
+            url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={api_key}"
+            payload = {
+                "email": email,
+                "password": password,
+                "returnSecureToken": True
+            }
+            resp = requests.post(url, json=payload)
+            resp_data = resp.json()
+
+            if "error" in resp_data:
+                return jsonify({"success": False, "message": "Invalid email or password."}), 401
+            
+            uid = resp_data["localId"]
+            
+            # Write session details
+            session['user_id'] = uid
+            session['email'] = email
+            
+            doc = db.collection('users').document(uid).get()
+            name = "User"
+            if doc.exists:
+                name = doc.to_dict().get('name', 'User')
+            
+            session['name'] = name
+
+            return jsonify({
+                "success": True,
+                "message": "Log in successful.",
+                "user": {
+                    "uid": uid,
+                    "email": email,
+                    "name": name
+                }
+            })
+        except Exception as e:
+            return jsonify({"success": False, "message": f"Login failed: {str(e)}"}), 500
 
     doc_id = "mock_" + email.replace("@", "_").replace(".", "_")
     doc_ref = db.collection('users').document(doc_id)
