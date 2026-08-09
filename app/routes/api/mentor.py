@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from app.routes.api import api_bp
-from app.services.openai_service import get_coach_response
+from app.services.ai_service import get_coach_response
 from app.services.gamification import get_user_profile, add_rewards
 from app.services.firebase import db, SERVER_TIMESTAMP
 from app.utils.auth_helper import login_required

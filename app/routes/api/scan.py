@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from app.routes.api import api_bp
-from app.services.openai_service import analyze_waste_image
+from app.services.ai_service import analyze_waste_image
 from app.services.gamification import add_rewards, get_user_profile
 from app.services.firebase import db, SERVER_TIMESTAMP
 from app.utils.auth_helper import login_required
@@ -109,19 +109,26 @@ def scan_waste():
     scan_id = client_scan_id or f"scan_{uuid.uuid4().hex[:12]}"
     now_iso = datetime.datetime.utcnow()
 
-    print(f"[Scanner] Gemini configured: True")
+    print(f"[Scanner] Local AI scanner configured: True")
     print(f"[Scanner] Scan ID: {scan_id} | Filename: {filename} | Time: {now_iso.isoformat()}")
 
     result = analyze_waste_image(image_bytes, filename, mime_type) or {}
     # ── Differentiate error types from analyze_waste_image ─────
     error_type = result.get("error_type")
-    if error_type == "config_error":
+    if error_type == "model_unavailable":
         return jsonify({
             "success": False,
-            "error": "Gemini Vision is not configured. Please set GEMINI_API_KEY.",
-            "error_type": "config_error",
+            "error": "The local scanner model is unavailable. Please try again.",
+            "error_type": "model_unavailable",
             "scan_id": scan_id
-        }), 500
+        }), 503
+    elif error_type == "low_confidence":
+        return jsonify({
+            "success": False,
+            "error": "Couldn't confidently identify this item. Try taking a clearer photo.",
+            "error_type": "low_confidence",
+            "scan_id": scan_id
+        }), 422
     elif error_type == "invalid_upload":
         return jsonify({
             "success": False,
@@ -130,13 +137,13 @@ def scan_waste():
             "scan_id": scan_id
         }), 400
     elif error_type == "api_error":
-        err_msg = result.get("reason") or "AI vision service is temporarily unavailable. Please try again."
+        err_msg = result.get("reason") or "The local scanner model failed to analyze the image."
         return jsonify({
             "success": False,
             "error": err_msg,
             "error_type": "api_error",
             "scan_id": scan_id
-        }), 502
+        }), 500
 
     scans_ref = db.collection('scans')
     is_duplicate = False
@@ -260,7 +267,7 @@ def scan_receipt():
             except Exception:
                 pass
                 
-    from app.services.openai_service import analyze_receipt
+    from app.services.ai_service import analyze_receipt
     result = analyze_receipt(image_bytes, filename)
     
     from app.services.gamification import add_rewards

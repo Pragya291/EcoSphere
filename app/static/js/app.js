@@ -1435,7 +1435,7 @@ function processFileScan(file, scanId) {
   if (laser) laser.style.display = "block";
   if (statusOverlay) statusOverlay.style.display = "flex";
   if (statusBadge) {
-    statusBadge.textContent = "🔍 Analyzing image with Vision AI...";
+    statusBadge.textContent = "🔍 Analyzing image...";
     statusBadge.style.color = "#f9a826";
     statusBadge.style.background = "rgba(249,168,38,0.15)";
   }
@@ -1510,7 +1510,7 @@ function processImageScan(base64Data, filename, scanId) {
   if (laser) laser.style.display = "block";
   if (statusOverlay) statusOverlay.style.display = "flex";
   if (statusBadge) {
-    statusBadge.textContent = "🔍 Analyzing image with Vision AI...";
+    statusBadge.textContent = "🔍 Analyzing image...";
     statusBadge.style.color = "#f9a826";
     statusBadge.style.background = "rgba(249,168,38,0.15)";
   }
@@ -1539,7 +1539,7 @@ function _handleScanResponse(data, scanId, laser, statusOverlay, statusBadge) {
   if (laser) laser.style.display = "none";
   if (statusOverlay) statusOverlay.style.display = "none";
   if (statusBadge) {
-    statusBadge.textContent = "🟢 Vision AI Ready";
+    statusBadge.textContent = "🟢 Local Scanner Ready";
     statusBadge.style.color = "#52e065";
     statusBadge.style.background = "rgba(82,224,101,0.15)";
   }
@@ -1574,7 +1574,7 @@ function _handleScanError(err, scanId, laser, statusOverlay, statusBadge) {
   if (laser) laser.style.display = "none";
   if (statusOverlay) statusOverlay.style.display = "none";
   if (statusBadge) {
-    statusBadge.textContent = "🟢 Offline Mode";
+    statusBadge.textContent = "🟢 Local Scanner Ready";
     statusBadge.style.color = "#52e065";
   }
   console.error("Scan API error: ", err);
@@ -1816,30 +1816,96 @@ function loadScanHistory() {
           timeAgo = diff < 1 ? 'Just now' : diff < 60 ? `${diff} mins ago` : `${Math.round(diff/60)} hr ago`;
         }
         return `
-          <div style="flex-shrink:0;width:170px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:border-color 0.2s;"
+          <div style="flex-shrink:0;width:220px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color 0.2s;"
                onmouseover="this.style.borderColor='rgba(82,224,101,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
-            <!-- Thumbnail placeholder -->
-            <div style="height:70px;background:rgba(82,224,101,0.06);border:1px solid rgba(82,224,101,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:2rem;">
+            <!-- Thumbnail placeholder on left -->
+            <div style="width:50px;height:50px;background:rgba(82,224,101,0.06);border:1px solid rgba(82,224,101,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;">
               ${ci.icon}
             </div>
-            <!-- Item name + badge row -->
-            <div>
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:3px;">
-                <span style="font-size:0.8rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:95px;">${s.material || 'Waste Item'}</span>
-                <span style="font-size:0.7rem;padding:1px 6px;border-radius:8px;background:rgba(82,224,101,0.12);border:1px solid rgba(82,224,101,0.25);color:${ci.color};white-space:nowrap;flex-shrink:0;">${cat}</span>
-              </div>
-              <div style="font-size:0.68rem;color:#64748b;">${confPct}% Confidence</div>
-            </div>
-            <!-- Footer: time + coins -->
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;">
-              <span style="font-size:0.65rem;color:#475569;">${timeAgo}</span>
-              <span style="font-size:0.72rem;font-weight:700;color:#c7fe73;">+${s.coins_earned || 40} 🪙</span>
+            <!-- Details column on right -->
+            <div style="display:flex;flex-direction:column;gap:3px;min-width:0;text-align:left;">
+              <span style="font-size:0.88rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.material || 'Waste Item'}</span>
+              <span style="font-size:0.75rem;color:#52e065;font-weight:600;">${s.recyclable ? 'Recyclable' : 'Special Disposal'}</span>
+              <span style="font-size:0.7rem;color:#64748b;">${timeAgo}</span>
             </div>
           </div>
         `;
       }).join('');
     })
     .catch(err => console.error("Error loading scan history:", err));
+}
+
+function showAllScanHistory() {
+  fetch(`/api/scan/history?user_id=${state.user_id}`)
+    .then(r => r.json())
+    .then(scans => {
+      const modalTitle = document.getElementById("modal-title");
+      const modalBody = document.getElementById("modal-body");
+      if (!modalTitle || !modalBody) return;
+
+      modalTitle.textContent = "♻️ Complete Scan History";
+      
+      if (!scans || scans.length === 0) {
+        modalBody.innerHTML = `<p style="color:#64748b;text-align:center;padding:20px;">No scan history recorded yet.</p>`;
+        document.getElementById("modal-overlay").classList.add("active");
+        return;
+      }
+
+      const catMap = {
+        'Plastic': '🧴',
+        'Paper/Cardboard': '📄',
+        'Glass': '🫙',
+        'Metal': '🥫',
+        'Organic/Wet Waste': '🌿',
+        'E-Waste': '📱',
+        'Textile': '👕',
+        'Hazardous Waste': '⚠️',
+        'Other/Unknown': '♻️'
+      };
+
+      let html = `
+        <div style="max-height: 400px; overflow-y: auto; padding-right: 5px; scrollbar-width: thin;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem; color: #fff;">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: #94a3b8;">
+                <th style="padding: 8px 4px;">Item</th>
+                <th style="padding: 8px 4px;">Category</th>
+                <th style="padding: 8px 4px;">Confidence</th>
+                <th style="padding: 8px 4px;">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      scans.forEach(s => {
+        const confPct = Math.round((s.confidence || 0.9) * 100);
+        const cat = s.category || 'General';
+        const icon = catMap[cat] || '♻️';
+        const dateStr = s.scanned_at ? new Date(s.scanned_at).toLocaleDateString() : 'N/A';
+        
+        html += `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="padding: 10px 4px; font-weight: 600;">${icon} ${s.material || 'Waste Item'}</td>
+            <td style="padding: 10px 4px;"><span style="background:rgba(82,224,101,0.1); border:1px solid rgba(82,224,101,0.2); color:#52e065; padding:2px 8px; border-radius:10px; font-size:0.7rem;">${cat}</span></td>
+            <td style="padding: 10px 4px; color:#52e065;">${confPct}%</td>
+            <td style="padding: 10px 4px; color:#64748b; font-size:0.75rem;">${dateStr}</td>
+          </tr>
+        `;
+      });
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      modalBody.innerHTML = html;
+      document.getElementById("modal-overlay").classList.add("active");
+    })
+    .catch(err => {
+      console.error("Error loading scan history:", err);
+      showAchievementModal("Error", "Could not load scan history. Please try again.");
+    });
 }
 
 function updateTodayImpact(scans) {

@@ -1064,13 +1064,13 @@
             <!-- ==========================================
                  AI SCANNER COMPONENT VIEW (UPGRADED)
                  ========================================== -->
-            <div id="view-scanner" style="display: none; padding: 24px 28px; max-width: 1100px; margin: 0 auto; width:100%; box-sizing:border-box; overflow-x:hidden;">
+            <div id="view-scanner" style="display: none; padding: 24px 28px; width:100%; box-sizing:border-box; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;">
 
                 <!-- Page Header -->
                 <div style="margin-bottom:20px;">
                     <h2 style="margin:0 0 4px; font-size:1.55rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;"
                     >AI Waste Scanner <span style="color:#52e065;">✦</span></h2>
-                    <p class="text-secondary" style="margin:0; font-size:0.82rem;">Scan smart. Sort right. Save our planet.</p>
+                    <p class="text-secondary" style="margin:0; font-size:0.82rem;">Scan. Identify. Impact.</p>
                 </div>
 
                 <!-- 2-Column Layout: Main + Sidebar -->
@@ -1093,7 +1093,7 @@
                             </div>
 
                             <!-- Scanner Viewport -->
-                            <div class="scanner-viewport" style="position:relative; height:260px; border-radius:14px; border:2px dashed rgba(82,224,101,0.3); background:linear-gradient(160deg,#030a06 60%,rgba(10,28,17,0.95)); overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom:14px; transition:border-color 0.2s;"
+                            <div class="scanner-viewport" style="position:relative; height:180px; border-radius:14px; border:2px dashed rgba(82,224,101,0.3); background:linear-gradient(160deg,#030a06 60%,rgba(10,28,17,0.95)); overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom:14px; transition:border-color 0.2s;"
                                  ondragover="event.preventDefault(); this.style.borderColor='#52e065';" ondragleave="this.style.borderColor='rgba(82,224,101,0.3)'" ondrop="handleFileDrop(event)">
 
                                 <!-- Hidden video + preview -->
@@ -1111,11 +1111,11 @@
                                 </div>
 
                                 <!-- Drop Prompt (shown when idle) -->
-                                <div class="scanner-overlay" id="scanner-overlay" style="display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;color:#94a3b8;padding:20px;width:100%;">
+                                <div class="scanner-overlay" id="scanner-overlay" style="display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;color:#94a3b8;padding:12px;width:100%;">
                                     <!-- Decorative icon -->
-                                    <div style="width:64px;height:64px;border-radius:50%;background:rgba(82,224,101,0.1);border:2px solid rgba(82,224,101,0.25);display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin-bottom:4px;">📷</div>
-                                    <p style="margin:0;font-size:1rem;font-weight:700;color:#fff;">Upload an image to scan</p>
-                                    <span style="font-size:0.78rem;color:#64748b;">Drag &amp; drop a photo here, or click "Upload Photo" below</span>
+                                    <div style="width:48px;height:48px;border-radius:50%;background:rgba(82,224,101,0.1);border:2px solid rgba(82,224,101,0.25);display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:2px;">📷</div>
+                                    <p style="margin:0;font-size:0.9rem;font-weight:700;color:#fff;">Upload an image to scan</p>
+                                    <span style="font-size:0.72rem;color:#64748b;">Drag &amp; drop a photo here, or click "Upload Photo" below</span>
                                     <!-- Feature pills -->
                                     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px;">
                                         <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#94a3b8;padding:4px 12px;border-radius:20px;font-size:0.72rem;">🔍 Smart object recognition</span>
@@ -1272,7 +1272,7 @@
                                 <h3 style="margin:0;font-size:1rem;font-weight:800;color:#fff;display:flex;align-items:center;gap:6px;">🕐 Recent Scan History</h3>
                                 <div style="display:flex;align-items:center;gap:12px;">
                                     <span style="font-size:0.7rem;color:#64748b;display:flex;align-items:center;gap:4px;">☁️ Saved to Firestore</span>
-                                    <button onclick="loadScanHistory()" style="background:rgba(82,224,101,0.1);border:1px solid rgba(82,224,101,0.25);color:#52e065;padding:4px 12px;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">View All →</button>
+                                    <button onclick="showAllScanHistory()" style="background:rgba(82,224,101,0.1);border:1px solid rgba(82,224,101,0.25);color:#52e065;padding:4px 12px;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">View All →</button>
                                 </div>
                             </div>
                             <div id="scan-history-list" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;scrollbar-color:rgba(82,224,101,0.2) transparent;">

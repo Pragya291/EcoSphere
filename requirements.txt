@@ -1,9 +1,10 @@
 flask
 python-dotenv
 firebase-admin
-openai
 requests
 pytest
 gunicorn
-google-generativeai
 Pillow
+torch
+torchvision
+transformers

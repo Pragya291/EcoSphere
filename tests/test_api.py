@@ -123,7 +123,7 @@ def test_scan_waste(client):
     """Test scanning image files via FormData multipart upload."""
     import io
     from unittest.mock import patch
-    from app.services import openai_service as svc
+    from app.services import ai_service as svc
     from PIL import Image as PILImage
 
     buf = io.BytesIO()
@@ -167,7 +167,7 @@ def test_scan_waste_structured_schema(client):
     """Test that scan route returns all required structured vision classification fields."""
     import io
     from unittest.mock import patch
-    from app.services import openai_service as svc
+    from app.services import ai_service as svc
     from PIL import Image as PILImage
 
     buf = io.BytesIO()
