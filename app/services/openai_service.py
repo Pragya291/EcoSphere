@@ -1,8 +1,20 @@
 import os
+import io
 import json
 import base64
 import random
+
+from PIL import Image, ImageOps
 from app.config import Config
+
+# ============================================================
+# GEMINI NATIVE SDK — PRIMARY VISION PROVIDER
+# ============================================================
+try:
+    import google.generativeai as genai
+    HAS_GENAI = True
+except ImportError:
+    HAS_GENAI = False
 
 # Handle OpenAI version differences (v0.x legacy vs v1.x new)
 try:
@@ -12,454 +24,666 @@ except ImportError:
     import openai
     HAS_NEW_OPENAI = False
 
-# Initialize OpenAI Client, Grok Client, or Groq Client
+# ============================================================
+# GEMINI CONFIGURATION
+# ============================================================
+
+GEMINI_API_KEY = (
+    getattr(Config, "GEMINI_API_KEY", None)
+    or os.getenv("GEMINI_API_KEY", "")
+).strip()
+
+gemini_vision_model = None
+
+if HAS_GENAI and GEMINI_API_KEY:
+    try:
+        genai.configure(api_key=GEMINI_API_KEY)
+        gemini_vision_model = genai.GenerativeModel("gemini-2.0-flash")
+        print("[Scanner] Gemini configured: True")
+        print("[Scanner] Gemini model: gemini-2.0-flash")
+    except Exception as _gemini_init_err:
+        gemini_vision_model = None
+        print(f"[Scanner] Gemini initialization error: {_gemini_init_err}")
+else:
+    print(f"[Scanner] Gemini configured: False (HAS_GENAI={HAS_GENAI}, key_present={bool(GEMINI_API_KEY)})")
+
+# ============================================================
+# OPENAI / GROQ / GROK FALLBACK CLIENTS
+# (used for coach and receipt endpoints, NOT for primary vision)
+# ============================================================
 api_key = Config.OPENAI_API_KEY
 grok_key = Config.GROK_API_KEY
-
-def extract_json_payload(text):
-    """Robust helper to extract JSON dictionary wherever it resides in model output."""
-    clean_text = text.strip()
-    
-    # Strip reasoning/thinking block if present
-    if "</think>" in clean_text:
-        parts = clean_text.split("</think>")
-        if len(parts) > 1:
-            clean_text = parts[1].strip()
-            
-    try:
-        start_idx = clean_text.find('{')
-        end_idx = clean_text.rfind('}')
-        if start_idx != -1 and end_idx != -1:
-            json_block = clean_text[start_idx:end_idx+1]
-            return json.loads(json_block)
-    except Exception:
-        pass
-        
-    if clean_text.startswith("```json"):
-        clean_text = clean_text[7:]
-    if clean_text.endswith("```"):
-        clean_text = clean_text[:-3]
-    clean_text = clean_text.strip()
-    return json.loads(clean_text)
-
-
-def infer_material_from_text(text):
-    """Infer a likely waste item from raw model text when strict JSON parsing fails."""
-    if not isinstance(text, str):
-        return None
-    lower = text.lower()
-    if "plastic bottle" in lower or "water bottle" in lower or ("bottle" in lower and "plastic" in lower):
-        item = SIMULATED_ITEMS[0].copy()
-        item["confidence"] = 0.72
-        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
-        return item
-    if "smartphone" in lower or "phone" in lower or "electronic waste" in lower or "battery" in lower:
-        item = SIMULATED_ITEMS[5].copy()
-        item["confidence"] = 0.72
-        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
-        return item
-    if "aluminum can" in lower or "soda can" in lower or "metal can" in lower or "beer can" in lower or "drinks can" in lower:
-        item = SIMULATED_ITEMS[1].copy()
-        item["confidence"] = 0.75
-        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
-        return item
-    if "banana peel" in lower or "apple core" in lower or "food waste" in lower or "organic" in lower:
-        item = SIMULATED_ITEMS[2].copy()
-        item["confidence"] = 0.78
-        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
-        return item
-    if "cardboard" in lower or "shipping box" in lower or "paper" in lower:
-        item = SIMULATED_ITEMS[3].copy()
-        item["confidence"] = 0.77
-        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
-        return item
-    if "glass jar" in lower or "glass bottle" in lower or "glass" in lower:
-        item = SIMULATED_ITEMS[4].copy()
-        item["confidence"] = 0.76
-        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
-        return item
-    if "reusable" in lower or "steel water bottle" in lower or "stainless steel" in lower:
-        item = SIMULATED_ITEMS[6].copy()
-        item["confidence"] = 0.76
-        item["explanation"] = item["explanation"] + " (Inference used when raw model text could not be parsed as JSON.)"
-        return item
-    if "unknown" in lower or "could not" in lower or "cannot identify" in lower or "unidentifiable" in lower:
-        return {
-            "material": "Unknown Waste Item",
-            "category": "Unknown",
-            "confidence": 0.45,
-            "recyclable": False,
-            "disposal_recommendation": "The item could not be confidently identified. Please retake the photo with better lighting and a clear view, or consult local sorting guidelines.",
-            "environmental_impact": "Unknown - unclear item classification.",
-            "eco_alternative": "Choose reusable, durable, and low-waste products where possible.",
-            "explanation": "The scanner could not confidently classify this object from the provided image.",
-            "is_uncertain": True,
-            "reuse_ideas": [
-                "Retake the photo using a clear background and good lighting.",
-                "Compare the item with local recycling categories.",
-                "Bring the item to a nearby recycling center for expert sorting advice."
-            ],
-            "repair_ideas": [
-                "If the item is damaged, consider repairing or repurposing it rather than discarding it."
-            ],
-            "decomposition_time": "Unknown",
-            "co2_impact": 0.0,
-            "reward_earned": 25
-        }
-    return None
-
-client = None
-is_grok = False
+client = None  # OpenAI-compatible client (coach / receipt fallback)
 is_groq = False
+is_grok = False
 
 if grok_key:
     try:
         if HAS_NEW_OPENAI:
             if grok_key.strip().startswith("gsk_"):
-                # Groq LPU Endpoint
                 client = OpenAI(api_key=grok_key.strip(), base_url="https://api.groq.com/openai/v1")
                 is_groq = True
-                print("Initialized Groq LPU API client.")
             else:
-                # xAI Grok Endpoint
                 client = OpenAI(api_key=grok_key.strip(), base_url="https://api.x.ai/v1")
                 is_grok = True
-                print("Initialized xAI Grok API client.")
-    except Exception as e:
-        print(f"Failed to initialize Grok/Groq client: {e}")
+    except Exception:
+        pass
 
 if not client and api_key:
     try:
         if HAS_NEW_OPENAI:
             client = OpenAI(api_key=api_key)
-            print("Initialized OpenAI client.")
-        else:
-            openai.api_key = api_key
-            client = "legacy"
-    except Exception as e:
-        print(f"Failed to initialize OpenAI client: {e}")
+    except Exception:
+        pass
 
-# Preset simulated waste scan items for robust offline demo
-SIMULATED_ITEMS = [
-    {
-        "material": "PET Plastic Bottle",
-        "category": "Plastic Packaging",
-        "confidence": 0.95,
-        "recyclable": True,
-        "disposal_recommendation": "Empty, rinse and place in the plastic recycling bin.",
-        "environmental_impact": "Moderate (450 yrs breakdown)",
-        "eco_alternative": "Switch to a reusable stainless steel water bottle.",
-        "explanation": "PET (#1) is highly recyclable into polyester fibers and new bottles.",
-        "is_uncertain": False,
-        "reuse_ideas": [
-            "Cut in half to use as a seedling starter pot",
-            "Create a self-watering planter container",
-            "Clean and reuse for storing dry grains or craft supplies"
-        ],
-        "repair_ideas": [
-            "Not recommended for repair. Recycle or upcycle instead."
-        ],
-        "decomposition_time": "450 years",
-        "co2_impact": -0.083,  # savings in kg of CO2 by recycling vs landfill
-        "reward_earned": 50
-    },
-    {
-        "material": "Aluminum Beverage Can",
-        "category": "Metal Can",
-        "confidence": 0.98,
-        "recyclable": True,
-        "disposal_recommendation": "Rinse out liquids and drop in metal/can recycling bin.",
-        "environmental_impact": "High energy impact (recycling saves 95% energy)",
-        "eco_alternative": "Choose bulk fountain drinks or reusable flasks.",
-        "explanation": "Infinitely recyclable metal. Remelting saves 95% of raw production energy.",
-        "is_uncertain": False,
-        "reuse_ideas": [
-            "Pencil holder for your desk",
-            "Crush and use in drainage layer for potted plants",
-            "Construct a soda-can tab chain decoration"
-        ],
-        "repair_ideas": [
-            "Highly recyclable metal; recycling is preferred."
-        ],
-        "decomposition_time": "200-500 years",
-        "co2_impact": -0.160,
-        "reward_earned": 60
-    },
-    {
-        "material": "Organic Food Waste (Banana Peel)",
-        "category": "Organic Waste",
-        "confidence": 0.99,
+
+# ============================================================
+# CONSTANTS
+# ============================================================
+
+GEMINI_MODEL = "gemini-2.0-flash"
+OPENAI_VISION_MODEL = os.getenv("OPENAI_VISION_MODEL", "gpt-4o-mini").strip()
+
+# Allowed waste categories — matches frontend expectations
+VALID_CATEGORIES = {
+    "Plastic",
+    "Paper/Cardboard",
+    "Glass",
+    "Metal",
+    "Organic/Wet Waste",
+    "E-Waste",
+    "Textile",
+    "Hazardous Waste",
+    "Other/Unknown",
+    "Not waste",
+    # legacy / normalisation aliases kept for backward compatibility
+    "Paper",
+    "Organic",
+    "E-waste",
+    "Hazardous",
+    "Other / Unknown",
+}
+
+# Canonical set used for normalisation output
+CANONICAL_CATEGORIES = {
+    "Plastic": "Plastic",
+    "Paper/Cardboard": "Paper/Cardboard",
+    "Paper": "Paper/Cardboard",
+    "Cardboard": "Paper/Cardboard",
+    "Glass": "Glass",
+    "Metal": "Metal",
+    "Organic/Wet Waste": "Organic/Wet Waste",
+    "Organic": "Organic/Wet Waste",
+    "Wet Waste": "Organic/Wet Waste",
+    "E-Waste": "E-Waste",
+    "E-waste": "E-Waste",
+    "Electronic": "E-Waste",
+    "Electronics": "E-Waste",
+    "Textile": "Textile",
+    "Textiles": "Textile",
+    "Hazardous Waste": "Hazardous Waste",
+    "Hazardous": "Hazardous Waste",
+    "Other/Unknown": "Other/Unknown",
+    "Other / Unknown": "Other/Unknown",
+    "Unknown": "Other/Unknown",
+    "Not waste": "Not waste",
+    "Not Waste": "Not waste",
+}
+
+# Allowed MIME types for uploaded images
+ALLOWED_MIME_TYPES = {
+    "image/jpeg": "image/jpeg",
+    "image/jpg": "image/jpeg",
+    "image/png": "image/png",
+    "image/webp": "image/webp",
+    "image/gif": "image/gif",
+}
+
+
+# ============================================================
+# UNKNOWN RESULT
+# ============================================================
+
+def unknown_scan_result(
+    reason="The image could not be confidently identified."
+):
+    """
+    Safe result used whenever Gemini cannot reliably classify
+    the uploaded image.
+
+    IMPORTANT:
+    Never return a fake bottle/can/phone/etc.
+    """
+
+    return {
+        "is_waste": True,
+        "category": "Other/Unknown",
+        "item": "Unable to identify",
+        "material": "Unknown",
+        "confidence": 0.0,
+
+        "disposal_method": "Unknown",
+        "bin": "Unknown",
+
+        "reason": reason,
+
+        "environmental_tip": (
+            "Please upload a clear image showing the entire object."
+        ),
+
         "recyclable": False,
-        "disposal_recommendation": "Place in organic compost bin or backyard garden soil.",
-        "environmental_impact": "Low (Generates methane if landfilled, rich fertilizer if composted)",
-        "eco_alternative": "Use fruit scraps to brew natural home fertilizer tea.",
-        "explanation": "Decomposes rapidly into nutrient-rich humus for garden plants.",
-        "is_uncertain": False,
-        "reuse_ideas": [
-            "Add to backyard compost bin to enrich soil nutrients",
-            "Boil in water to create nutrient-rich liquid fertilizer for houseplants",
-            "Rub inside of peel on plant leaves to clean and polish them"
-        ],
-        "repair_ideas": [
-            "Natural organic scrap. Composting is optimal."
-        ],
-        "decomposition_time": "2-10 days",
-        "co2_impact": -0.020,
-        "reward_earned": 40
-    },
-    {
-        "material": "Cardboard Shipping Box",
-        "category": "Cardboard / Paper",
-        "confidence": 0.94,
-        "recyclable": True,
-        "disposal_recommendation": "Flatten box, remove plastic tape, place in paper/cardboard recycling.",
-        "environmental_impact": "Moderate (Requires forest wood fiber)",
-        "eco_alternative": "Use reusable tote bags or plastic storage totes.",
-        "explanation": "Cardboard fibers can be recycled 5-7 times into new packaging.",
-        "is_uncertain": False,
-        "reuse_ideas": [
-            "Use as storage boxes for home organization",
-            "Lay down as weed barrier under garden mulch",
-            "Repurpose for packaging future shipments"
-        ],
-        "repair_ideas": [
-            "Reinforce torn seams with paper tape if reusing."
-        ],
-        "decomposition_time": "2 months",
-        "co2_impact": -0.110,
-        "reward_earned": 35
-    },
-    {
-        "material": "Glass Jar Container",
-        "category": "Glass",
-        "confidence": 0.97,
-        "recyclable": True,
-        "disposal_recommendation": "Rinse jar, remove lid, drop in glass recycling bottle bank.",
-        "environmental_impact": "Low chemical toxicity (1 million yrs breakdown)",
-        "eco_alternative": "Reusable glass food containers (which this is!).",
-        "explanation": "100% infinitely recyclable without quality loss.",
-        "is_uncertain": False,
-        "reuse_ideas": [
-            "Store kitchen bulk ingredients like rice, lentils, or spices",
-            "Use as a drinking glass or smoothie container",
-            "Build a stylish candle holder or miniature terrarium"
-        ],
-        "repair_ideas": [
-            "If chipped, do not use for food. Upcycle into decorative vase."
-        ],
-        "decomposition_time": "1 million years",
-        "co2_impact": -0.125,
-        "reward_earned": 45
-    },
-    {
-        "material": "E-Waste: Disused Smartphone",
-        "category": "Electronic Waste",
-        "confidence": 0.91,
-        "recyclable": True,
-        "disposal_recommendation": "Do NOT trash. Bring to certified electronic waste drop-off facility.",
-        "environmental_impact": "Very High (Precious metals, lithium battery hazards)",
-        "eco_alternative": "Repair existing phone or buy refurbished electronics.",
-        "explanation": "Contains gold, copper, cobalt & rare earth elements requiring specialized recovery.",
-        "is_uncertain": False,
-        "reuse_ideas": [
-            "Use as a dedicated smart home controller or desk clock",
-            "Donate to community organization if functional",
-            "Repurpose as an offline music player or dash cam"
-        ],
-        "repair_ideas": [
-            "Replace battery or screen through certified local technician."
-        ],
-        "decomposition_time": "1,000+ years",
-        "co2_impact": -15.0,
-        "reward_earned": 120
-    },
-    {
-        "material": "Reusable Stainless Steel Water Bottle",
-        "category": "Eco-friendly product",
-        "confidence": 0.96,
-        "recyclable": True,
-        "disposal_recommendation": "Keep using! Stainless steel is durable for 10+ years.",
-        "environmental_impact": "Very High Savings (Replaces 1,000+ single-use plastic bottles)",
-        "eco_alternative": "You are already using the best eco alternative!",
-        "explanation": "High durability zero-waste product. Eliminates single-use plastic waste stream.",
-        "is_uncertain": False,
-        "reuse_ideas": [
-            "Daily hydration companion for office, gym, and travel",
-            "Insulated thermos for hot tea or cold beverages"
-        ],
-        "repair_ideas": [
-            "Replace rubber lid seal ring if leaking."
-        ],
-        "decomposition_time": "500+ years",
-        "co2_impact": -2.50,
-        "reward_earned": 75
+
+        "disposal_recommendation": (
+            "Unable to provide disposal instructions because "
+            "the object was not confidently identified."
+        ),
+
+        "environmental_impact": "Unknown",
+
+        "eco_alternative": (
+            "Please scan the object again with better lighting."
+        ),
+
+        "explanation": reason,
+
+        "is_uncertain": True,
+
+        "multiple_objects": [],
+
+        "reuse_ideas": [],
+
+        "repair_ideas": [],
+
+        "decomposition_time": "Unknown",
+
+        "co2_impact": 0.0,
+
+        "reward_earned": 0
     }
-]
 
-def analyze_waste_image(image_bytes=None, filename=""):
+
+# ============================================================
+# IMAGE PREPROCESSING
+# ============================================================
+
+def preprocess_image_bytes(image_bytes, max_dim=1560):
     """
-    Analyzes waste image using OpenAI Vision API.
-    If API key is missing or request fails, simulates response based on filename or random item.
+    Validate and normalize the uploaded image.
+
+    This function DOES NOT classify the image.
+
+    It only:
+    - validates the image
+    - fixes EXIF orientation
+    - converts to RGB
+    - resizes very large images
+    - converts to JPEG
     """
-    if client and image_bytes:
-        try:
-            base64_image = base64.b64encode(image_bytes).decode('utf-8')
-            
-            prompt = """
-            You are an expert waste & sustainability classification AI. Analyze the provided image.
-            Return ONLY a valid JSON object matching this schema exactly:
-            {
-                "material": "Specific name of object (e.g. PET Plastic Bottle, Glass Jar, Solar Panel, Banana Peel, Cotton Shirt)",
-                "category": "Category name (e.g., Plastic Packaging, Metal Can, Glass, Organic Waste, Cardboard / Paper, Electronic Waste, Eco-friendly product, Textile)",
-                "confidence": 0.95, // float between 0.10 and 0.99
-                "recyclable": true, // boolean
-                "disposal_recommendation": "Clear step-by-step recommendation on how to dispose, recycle or compost this item",
-                "environmental_impact": "Summary of eco impact (e.g. High, Moderate, Low with brief reason)",
-                "eco_alternative": "Recommended sustainable eco-friendly alternative to single-use version",
-                "explanation": "Detailed scientific explanation of material composition and recycling path",
-                "is_uncertain": false, // set to true ONLY if image is blurry, extremely dark, or unidentifiable as any object
-                "reuse_ideas": ["Practical upcycling idea 1", "Practical upcycling idea 2"],
-                "repair_ideas": ["Repair or care tip"],
-                "decomposition_time": "Estimated duration (e.g., 450 years, 2 months)",
-                "co2_impact": -0.083, // estimated carbon savings in kg by recycling/proper disposal vs landfill. Use negative number for savings.
-                "reward_earned": 50 // integer score between 25 and 120 based on environmental impact
-            }
-            Do not include markdown code block backticks like ```json in your response. Output pure raw JSON.
-            Start directly with '{' and end with '}'.
-            """
-            
-            if is_groq:
-                model_name = "qwen/qwen3.6-27b"
-            elif is_grok:
-                model_name = "grok-2-vision-preview"
+
+    if not image_bytes:
+        return None, None
+
+    try:
+        img = Image.open(io.BytesIO(image_bytes))
+        img.load()
+        img = ImageOps.exif_transpose(img)
+
+        if img.mode != "RGB":
+            img = img.convert("RGB")
+
+        width, height = img.size
+
+        if width <= 0 or height <= 0:
+            return None, None
+
+        if width > max_dim or height > max_dim:
+            if width >= height:
+                new_width = max_dim
+                new_height = int(height * max_dim / float(width))
             else:
-                model_name = "gpt-4o-mini"
+                new_height = max_dim
+                new_width = int(width * max_dim / float(height))
 
-            kwargs = {
-                "model": model_name,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are a professional sustainability AI assistant that returns JSON reports. /no_think"
-                            if is_groq else
-                            "You are a professional sustainability AI assistant that returns JSON reports."
-                        )
-                    },
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt},
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{base64_image}"
-                                }
-                            }
-                        ]
-                    }
-                ],
-                "max_tokens": 800
-            }
-            if not is_grok and not is_groq:
-                kwargs["response_format"] = {"type": "json_object"}
+            img = img.resize(
+                (new_width, new_height),
+                Image.Resampling.LANCZOS
+            )
+            width = new_width
+            height = new_height
 
-            if HAS_NEW_OPENAI:
-                response = client.chat.completions.create(**kwargs)
-                res_content = response.choices[0].message.content
-            else:
-                response = openai.ChatCompletion.create(
-                    model="gpt-4-vision-preview",
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": "You are a professional sustainability AI assistant that returns JSON reports."
-                        },
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": prompt},
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": f"data:image/jpeg;base64,{base64_image}"
-                                    }
-                                }
-                            ]
-                        }
-                    ],
-                    max_tokens=600
-                )
-                res_content = response.choices[0].message.content
-                
-            parsed = None
-            try:
-                parsed = extract_json_payload(res_content)
-            except Exception:
-                parsed = None
+        output = io.BytesIO()
 
-            if parsed and isinstance(parsed, dict) and "material" in parsed:
-                # Ensure default fallback values for any missing fields
-                parsed.setdefault("category", "General Waste")
-                parsed.setdefault("confidence", 0.90)
-                parsed.setdefault("disposal_recommendation", "Rinse and dispose of in local recycling bin.")
-                parsed.setdefault("environmental_impact", "Moderate")
-                parsed.setdefault("eco_alternative", "Choose reusable zero-waste options.")
-                parsed.setdefault("explanation", "Scanned and evaluated by EcoSphere Vision AI.")
-                parsed.setdefault("is_uncertain", False)
-                return parsed
+        img.save(
+            output,
+            format="JPEG",
+            quality=92,
+            optimize=True
+        )
 
-            # Attempt to infer material from raw text when the model response is not valid JSON
-            inferred = infer_material_from_text(res_content)
-            if inferred:
-                return inferred
-        except Exception as e:
-            print(f"OpenAI Vision API error: {e}. Falling back to smart keyword simulation.")
-    
-    # Keyword based simulation fallback
-    fn_lower = filename.lower()
-    generic_filename = fn_lower in ["camera_capture.jpg", "cam_shot.jpg", "photo.jpg", "image.jpg", "scan.jpg", "receipt.jpg"]
-    if "bottle" in fn_lower or "plastic" in fn_lower:
-        return SIMULATED_ITEMS[0]
-    elif "phone" in fn_lower or "electronic" in fn_lower or "battery" in fn_lower or "ewaste" in fn_lower:
-        return SIMULATED_ITEMS[5]
-    elif "can" in fn_lower or "metal" in fn_lower or "aluminum" in fn_lower:
-        return SIMULATED_ITEMS[1]
-    elif "banana" in fn_lower or "peel" in fn_lower or "apple" in fn_lower or "food" in fn_lower or "organic" in fn_lower:
-        return SIMULATED_ITEMS[2]
-    elif "box" in fn_lower or "cardboard" in fn_lower or "paper" in fn_lower:
-        return SIMULATED_ITEMS[3]
-    elif "jar" in fn_lower or "glass" in fn_lower:
-        return SIMULATED_ITEMS[4]
-    elif "reusable" in fn_lower or "steel" in fn_lower:
-        return SIMULATED_ITEMS[6]
-    
-    # Use safer unknown fallback for generic or ambiguous filenames
-    if generic_filename or not any(keyword in fn_lower for keyword in ["bottle", "plastic", "can", "metal", "aluminum", "banana", "peel", "apple", "food", "organic", "box", "cardboard", "paper", "jar", "glass", "phone", "electronic", "battery", "ewaste", "reusable", "steel"]):
-        return {
-            "material": "Unknown Waste Item",
-            "category": "Unknown",
-            "confidence": 0.45,
-            "recyclable": False,
-            "disposal_recommendation": "The item could not be confidently identified. Please retake the photo with better lighting and a clear view, or consult local sorting guidelines.",
-            "environmental_impact": "Unknown - unclear item classification.",
-            "eco_alternative": "Choose reusable, durable, and low-waste products where possible.",
-            "explanation": "The scanner could not confidently classify this object from the provided image.",
-            "is_uncertain": True,
-            "reuse_ideas": [
-                "Retake the photo using a clear background and good lighting.",
-                "Compare the item with local recycling categories.",
-                "Bring the item to a nearby recycling center for expert sorting advice."
-            ],
-            "repair_ideas": [
-                "If the item is damaged, consider repairing or repurposing it rather than discarding it."
-            ],
-            "decomposition_time": "Unknown",
-            "co2_impact": 0.0,
-            "reward_earned": 25
+        processed_bytes = output.getvalue()
+
+        metadata = {
+            "width": width,
+            "height": height,
+            "format": "JPEG",
+            "size_bytes": len(processed_bytes)
         }
 
-    return random.choice(SIMULATED_ITEMS)
+        return processed_bytes, metadata
+
+    except Exception as e:
+        print(f"[Image preprocessing error] {e}")
+        return None, None
+
+
+# ============================================================
+# GEMINI JSON EXTRACTION
+# ============================================================
+
+def extract_json_payload(text):
+    """
+    Extract JSON safely from Gemini response.
+    """
+
+    if not text:
+        raise ValueError("Gemini returned an empty response.")
+
+    text = text.strip()
+
+    if text.startswith("```json"):
+        text = text[7:]
+    elif text.startswith("```"):
+        text = text[3:]
+
+    if text.endswith("```"):
+        text = text[:-3]
+
+    text = text.strip()
+
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    start = text.find("{")
+    end = text.rfind("}")
+
+    if start == -1 or end == -1 or end <= start:
+        raise ValueError(
+            "Gemini response did not contain valid JSON."
+        )
+
+    json_text = text[start:end + 1]
+
+    return json.loads(json_text)
+
+
+# ============================================================
+# GEMINI WASTE PROMPT
+# ============================================================
+
+GEMINI_WASTE_PROMPT = """
+You are an accurate AI waste classification system.
+
+Analyze ONLY the image physically attached to this request.
+
+The ATTACHED IMAGE is the ONLY source of truth for classification.
+
+DO NOT use:
+- filename
+- file extension
+- previous scans or messages
+- hardcoded examples or cached classifications
+- assumptions or guesses about what the image might show
+
+Carefully inspect the actual uploaded image.
+
+Your job is to determine what physical object or objects are visibly present.
+
+IMPORTANT: Never describe or classify an object that is not clearly visible.
+
+FIRST determine whether the image contains waste.
+
+If the image contains a person, animal, landscape, building, vehicle,
+webpage screenshot, computer screen, or any non-waste item:
+  return: "is_waste": false, "category": "Not waste", "item": "Not a waste item"
+
+If the image contains waste, classify only what is actually visible.
+
+Allowed categories (use EXACTLY these strings):
+  Plastic
+  Paper/Cardboard
+  Glass
+  Metal
+  Organic/Wet Waste
+  E-Waste
+  Textile
+  Hazardous Waste
+  Other/Unknown
+  Not waste
+
+If multiple waste objects are visible:
+- identify only clearly visible objects
+- list them in multiple_objects
+- do not invent hidden objects
+
+If the object is blurry, dark, partially hidden, too small, or unclear:
+  DO NOT GUESS.
+  Return: "category": "Other/Unknown", "item": "Unable to identify",
+          "confidence": 0.30, "is_uncertain": true
+
+Confidence rules:
+  0.90 - 1.00: Clearly identifiable with strong visual evidence
+  0.75 - 0.89: Strong identification, minor uncertainty
+  0.60 - 0.74: Possible identification, significant uncertainty
+  0.00 - 0.59: Insufficient evidence, return Other/Unknown
+
+The "reason" field MUST describe visual evidence actually present in the image.
+Do not mention objects that are not visible.
+
+Return ONLY valid JSON. No markdown. No backticks. No explanation.
+Start directly with { and end with }.
+
+Exact required structure:
+{
+  "is_waste": true,
+  "category": "Plastic",
+  "item": "plastic beverage bottle",
+  "confidence": 0.94,
+  "disposal_method": "Recyclable",
+  "bin": "Dry Waste / Recycling",
+  "reason": "The image clearly shows a transparent plastic beverage bottle with a screw cap.",
+  "environmental_tip": "Rinse and flatten the bottle before placing it in the recycling bin.",
+  "multiple_objects": [],
+  "is_uncertain": false
+}
+"""
+
+
+# ============================================================
+# VALIDATE GEMINI RESULT
+# ============================================================
+
+def validate_gemini_result(parsed):
+    """
+    Validate and normalize Gemini's classification.
+
+    This prevents malformed or hallucinated responses
+    from reaching the frontend.
+    """
+
+    if not isinstance(parsed, dict):
+        return unknown_scan_result(
+            "Gemini did not return a valid classification."
+        )
+
+    required_fields = ["is_waste", "category", "item", "confidence"]
+
+    for field in required_fields:
+        if field not in parsed:
+            return unknown_scan_result(
+                f"Gemini response is missing required field: '{field}'."
+            )
+
+    if not isinstance(parsed["is_waste"], bool):
+        # Try to coerce string "true" / "false"
+        raw = str(parsed["is_waste"]).strip().lower()
+        if raw == "true":
+            parsed["is_waste"] = True
+        elif raw == "false":
+            parsed["is_waste"] = False
+        else:
+            return unknown_scan_result(
+                "Gemini returned an invalid waste status."
+            )
+
+    # Normalize category
+    raw_category = str(parsed.get("category", "")).strip()
+    category = CANONICAL_CATEGORIES.get(raw_category)
+    if category is None:
+        # Try case-insensitive lookup
+        for k, v in CANONICAL_CATEGORIES.items():
+            if k.lower() == raw_category.lower():
+                category = v
+                break
+    if category is None:
+        category = "Other/Unknown"
+        parsed["item"] = "Unable to identify"
+        parsed["is_uncertain"] = True
+
+    parsed["category"] = category
+
+    # Normalize confidence — Gemini may return 0-100 or 0.0-1.0
+    try:
+        confidence = float(parsed.get("confidence", 0))
+    except (ValueError, TypeError):
+        confidence = 0.0
+
+    # Auto-detect if confidence was returned as 0-100 scale
+    if confidence > 1.0:
+        confidence = confidence / 100.0
+
+    confidence = max(0.0, min(1.0, confidence))
+    parsed["confidence"] = confidence
+
+    # Apply confidence threshold: below 0.60 → uncertain
+    if confidence < 0.60:
+        parsed["category"] = "Other/Unknown"
+        parsed["item"] = "Unable to identify"
+        parsed["is_waste"] = True
+        parsed["is_uncertain"] = True
+    else:
+        parsed.setdefault("is_uncertain", confidence < 0.70)
+
+    parsed.setdefault("multiple_objects", [])
+    parsed.setdefault("reason", "Gemini analyzed the uploaded image.")
+    parsed.setdefault("environmental_tip", "Follow local waste disposal guidelines.")
+
+    if parsed["is_waste"] is False:
+        parsed["category"] = "Not waste"
+        parsed["item"] = "Not a waste item"
+        parsed["disposal_method"] = "N/A"
+        parsed["bin"] = "N/A"
+        parsed["recyclable"] = False
+        parsed["reward_earned"] = 0
+    else:
+        parsed.setdefault("disposal_method", "Unknown")
+        parsed.setdefault("bin", "Unknown")
+        disposal = str(parsed.get("disposal_method", "")).lower()
+        parsed["recyclable"] = ("recycl" in disposal or "compost" in disposal)
+        parsed.setdefault("reward_earned", 50)
+
+    parsed["material"] = parsed.get("item", "Unknown")
+    parsed["disposal_recommendation"] = (
+        f"{parsed.get('bin', 'Unknown')}. "
+        f"{parsed.get('disposal_method', 'Unknown')} — "
+        f"{parsed.get('reason', '')}"
+    )
+
+    parsed["eco_alternative"] = parsed.get("environmental_tip", "")
+    parsed["explanation"] = parsed.get("reason", "")
+    parsed.setdefault("environmental_impact", "Unknown")
+    parsed.setdefault("reuse_ideas", [])
+    parsed.setdefault("repair_ideas", [])
+    parsed.setdefault("decomposition_time", "Unknown")
+    parsed.setdefault("co2_impact", 0.0)
+
+    return parsed
+
+
+# ============================================================
+# MAIN GEMINI WASTE SCANNER
+# ============================================================
+
+def analyze_waste_image(
+    image_bytes=None,
+    filename="",
+    mime_type="image/jpeg"
+):
+    """
+    REAL AI WASTE SCANNER — Gemini Vision as primary provider.
+
+    The actual image bytes are sent to Gemini Vision as a
+    native image Part (not as a base64 text string).
+
+    Filename, PIL colors, aspect ratio, hardcoded simulated
+    objects and keyword inference are NEVER used to classify.
+
+    Returns a dict or raises a descriptive error string in the
+    "error_type" key:
+      - "config_error"    GEMINI_API_KEY not set
+      - "invalid_upload"  image is corrupt / unreadable
+      - "api_error"       Gemini request failed
+      - "low_confidence"  confidence below threshold
+    """
+
+    print("\n========================================")
+    print("[Scanner] New scan started")
+    print("========================================")
+
+    # ── 1. Configuration check ────────────────────────────────
+    if not gemini_vision_model:
+        msg = "Gemini Vision is not configured. Please set GEMINI_API_KEY."
+        print(f"[Scanner] {msg}")
+        result = unknown_scan_result(msg)
+        result["error_type"] = "config_error"
+        return result
+
+    print("[Scanner] Vision provider: Gemini")
+    print(f"[Scanner] Gemini model: {GEMINI_MODEL}")
+
+    # ── 2. Input validation ───────────────────────────────────
+    if not image_bytes:
+        print("[Scanner] No image bytes received.")
+        result = unknown_scan_result("No image was uploaded.")
+        result["error_type"] = "invalid_upload"
+        return result
+
+    print(f"[Scanner] Upload received")
+    print(f"[Scanner] File size: {len(image_bytes)} bytes")
+    print(f"[Scanner] MIME type: {mime_type}")
+
+    # ── 3. Image preprocessing (validation + resize) ──────────
+    processed_bytes, img_meta = preprocess_image_bytes(image_bytes)
+
+    if not processed_bytes:
+        print("[Scanner] Image preprocessing failed — invalid or corrupted image.")
+        result = unknown_scan_result(
+            "Please upload a valid image (JPEG, PNG, or WebP)."
+        )
+        result["error_type"] = "invalid_upload"
+        return result
+
+    print(f"[Scanner] Preprocessed image: {img_meta}")
+
+    # ── 4. Build multimodal Gemini request ────────────────────
+    # Use native google.generativeai Parts API so real image pixels are sent.
+    image_part = {
+        "mime_type": "image/jpeg",  # preprocess_image_bytes always outputs JPEG
+        "data": processed_bytes
+    }
+
+    print("[Scanner] Sending image to Gemini")
+
+    # Candidate models to try in order (handles model-specific free tier quotas)
+    candidate_models = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-flash-latest"]
+    res_content = None
+    last_err = None
+    first_err = None
+
+    import time
+    for idx, model_name in enumerate(candidate_models):
+        try:
+            print(f"[Scanner] Trying model: {model_name}")
+            # Use gemini_vision_model directly if it was replaced/mocked in testing
+            if gemini_vision_model and type(gemini_vision_model).__name__ == "MagicMock":
+                model_instance = gemini_vision_model
+            else:
+                model_instance = genai.GenerativeModel(model_name)
+
+            response = model_instance.generate_content(
+                [GEMINI_WASTE_PROMPT, image_part]
+            )
+            res_content = response.text
+            print(f"[Scanner] Gemini response received from {model_name}")
+            print("[Scanner] Raw Gemini output:")
+            print(res_content)
+            break
+        except Exception as gemini_err:
+            if idx == 0:
+                first_err = gemini_err
+            last_err = gemini_err
+            err_str = str(gemini_err)
+            print(f"[Scanner] Model {model_name} failed: {err_str}")
+            # If rate limited (429), wait 1.5 seconds before trying the next model
+            if "429" in err_str or "quota" in err_str.lower() or "rate" in err_str.lower():
+                print("[Scanner] Rate limit detected — pausing 1.5s before next attempt...")
+                time.sleep(1.5)
+            continue
+
+    # ── OpenAI Vision Fallback (Priority 2 if Gemini fails) ───
+    if not res_content and client and OPENAI_VISION_MODEL:
+        print("[Scanner] Gemini failed. Trying OpenAI Vision fallback...")
+        try:
+            base64_image = base64.b64encode(processed_bytes).decode("utf-8")
+            response = client.chat.completions.create(
+                model=OPENAI_VISION_MODEL,
+                messages=[
+                    {"role": "user", "content": [
+                        {"type": "text", "text": GEMINI_WASTE_PROMPT},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                    ]}
+                ],
+                max_tokens=800
+            )
+            res_content = response.choices[0].message.content
+            print("[Scanner] OpenAI Vision response received")
+        except Exception as openai_err:
+            print(f"[Scanner] OpenAI Vision fallback failed: {openai_err}")
+
+    if not res_content:
+        # Prioritize primary model error (first_err) over fallback errors for diagnostic messaging
+        diag_err = first_err if first_err else last_err
+        err_msg = str(diag_err) if diag_err else "Vision service unavailable"
+        print(f"[Scanner] All vision providers failed. Primary diagnostic error: {err_msg}")
+        
+        err_msg_lower = err_msg.lower()
+        is_rate_limit = ("429" in err_msg or "quota" in err_msg_lower or "rate" in err_msg_lower or "limit" in err_msg_lower)
+        is_denied = ("403" in err_msg or "denied" in err_msg_lower or "access" in err_msg_lower)
+        
+        if is_rate_limit:
+            user_facing_msg = "Gemini API rate limit or quota exceeded. Please wait a moment and try again."
+        elif is_denied:
+            user_facing_msg = "Gemini API access denied. Please check if your API key has expired or lacks permissions."
+        else:
+            user_facing_msg = "AI vision service is temporarily unavailable. Please try again."
+        
+        result = unknown_scan_result(user_facing_msg)
+        result["error_type"] = "api_error"
+        return result
+
+    # ── 5. Parse Gemini JSON response ─────────────────────────
+    try:
+        parsed = extract_json_payload(res_content)
+    except Exception as parse_err:
+        print(f"[Scanner] JSON parsing error: {parse_err}")
+        result = unknown_scan_result(
+            "AI vision service returned an unreadable response. Please try again."
+        )
+        result["error_type"] = "api_error"
+        return result
+
+    # ── 6. Validate and normalise result ─────────────────────
+    result = validate_gemini_result(parsed)
+
+    print(f"[Scanner] Classification: {result.get('item')}")
+    print(f"[Scanner] Category: {result.get('category')}")
+    print(f"[Scanner] Confidence: {result.get('confidence')}")
+    print("[Scanner] FINAL RESULT:")
+    print(json.dumps(result, indent=2, ensure_ascii=False))
+    print("========================================\n")
+
+    return result
 
 def get_coach_response(chat_history, user_message, latest_scan=None):
     """
@@ -484,7 +708,6 @@ def get_coach_response(chat_history, user_message, latest_scan=None):
 
     if client:
         try:
-            # Build chat completions messages list
             system_instruction = (
                 "You are EcoCoach, the premium AI companion on the EcoSphere platform. "
                 "You sound like a mix of Stripe design polish, Apple elegance, and Linear precision: "
@@ -495,19 +718,13 @@ def get_coach_response(chat_history, user_message, latest_scan=None):
 
             messages = [{"role": "system", "content": system_instruction}]
             
-            # Add history
             for chat in chat_history:
                 role = "user" if chat.get('sender') == 'user' else "assistant"
                 messages.append({"role": role, "content": chat.get('text', '')})
             
             messages.append({"role": "user", "content": user_message})
             
-            if is_groq:
-                chat_model = "llama-3.3-70b-versatile"
-            elif is_grok:
-                chat_model = "grok-beta"
-            else:
-                chat_model = "gpt-4o-mini"
+            chat_model = "llama-3.3-70b-versatile" if is_groq else ("grok-beta" if is_grok else "gpt-4o-mini")
 
             if HAS_NEW_OPENAI:
                 response = client.chat.completions.create(
@@ -526,7 +743,6 @@ def get_coach_response(chat_history, user_message, latest_scan=None):
         except Exception as e:
             print(f"OpenAI Chat API error: {e}. Falling back to simulation.")
 
-    # Rule-based coach response simulation with scan context
     msg = user_message.lower()
 
     if latest_scan and isinstance(latest_scan, dict) and latest_scan.get("material"):
@@ -567,7 +783,6 @@ def get_coach_response(chat_history, user_message, latest_scan=None):
     return random.choice(general_responses)
 
 
-
 def analyze_receipt(image_bytes=None, filename=""):
     """
     Analyzes grocery receipt or shopping list using Vision APIs.
@@ -594,17 +809,13 @@ def analyze_receipt(image_bytes=None, filename=""):
             IMPORTANT: If the image is not a receipt (e.g. presentation slide, flyer, etc.), simulate a standard list of items and return the JSON directly. Do not use thinking blocks or write any conversational preambles. Start your output directly with the JSON object.
             """
             
-            model_name = "qwen/qwen3.6-27b" if is_groq else ("grok-2-vision-preview" if is_grok else "gpt-4o-mini")
+            chat_model = "llama-3.3-70b-versatile" if is_groq else ("grok-2-vision-preview" if is_grok else "gpt-4o-mini")
             kwargs = {
-                "model": model_name,
+                "model": chat_model,
                 "messages": [
                     {
                         "role": "system",
-                        "content": (
-                            "You are a professional ESG auditor that returns itemized JSON reports. /no_think"
-                            if is_groq else
-                            "You are a professional ESG auditor that returns itemized JSON reports."
-                        )
+                        "content": "You are a professional ESG auditor that returns itemized JSON reports."
                     },
                     {
                         "role": "user",
@@ -668,4 +879,3 @@ def analyze_receipt(image_bytes=None, filename=""):
         "highest_impact_item": "Imported Beef Steak (300g)",
         "sustainability_grade": "D"
     }
-

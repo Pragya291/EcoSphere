@@ -1073,7 +1073,111 @@ function logManualActivity() {
 // ==========================================
 state.cameraFacingMode = "environment"; // default rear camera
 state.latestScan = null;
+state.isRealTimeScanning = false;
+state.realTimeInterval = null;
+state.isProcessingRealTimeFrame = false;
 let currentUtterance = null;
+
+function toggleRealTimeScanner() {
+  if (state.isRealTimeScanning) {
+    stopRealTimeScanner();
+  } else {
+    startRealTimeScanner();
+  }
+}
+
+function startRealTimeScanner() {
+  state.isRealTimeScanning = true;
+  const btnRealtime = document.getElementById("btn-realtime");
+  const lblIcon = document.getElementById("lbl-realtime-icon");
+  const lblText = document.getElementById("lbl-realtime-text");
+  const realtimeHud = document.getElementById("realtime-hud");
+
+  if (lblIcon) lblIcon.textContent = "🛑";
+  if (lblText) lblText.textContent = "Stop Real-Time Scan";
+  if (btnRealtime) {
+    btnRealtime.style.background = "rgba(255, 93, 115, 0.25)";
+    btnRealtime.style.borderColor = "#ff5d73";
+    btnRealtime.style.color = "#ff5d73";
+  }
+  if (realtimeHud) realtimeHud.style.display = "flex";
+
+  startCamera(state.cameraFacingMode);
+
+  if (state.realTimeInterval) clearInterval(state.realTimeInterval);
+  state.realTimeInterval = setInterval(processRealTimeFrame, 1800);
+  triggerToast("⚡ Live Real-Time Vision AI scanning active", "success");
+}
+
+function stopRealTimeScanner() {
+  state.isRealTimeScanning = false;
+  if (state.realTimeInterval) {
+    clearInterval(state.realTimeInterval);
+    state.realTimeInterval = null;
+  }
+  const btnRealtime = document.getElementById("btn-realtime");
+  const lblIcon = document.getElementById("lbl-realtime-icon");
+  const lblText = document.getElementById("lbl-realtime-text");
+  const realtimeHud = document.getElementById("realtime-hud");
+
+  if (lblIcon) lblIcon.textContent = "⚡";
+  if (lblText) lblText.textContent = "Start Real-Time Scan";
+  if (btnRealtime) {
+    btnRealtime.style.background = "linear-gradient(135deg,#3ddc84,#00d4ff)";
+    btnRealtime.style.borderColor = "transparent";
+    btnRealtime.style.color = "#030a06";
+  }
+  if (realtimeHud) realtimeHud.style.display = "none";
+}
+
+function processRealTimeFrame() {
+  if (!state.isRealTimeScanning || state.isProcessingRealTimeFrame) return;
+
+  const video = document.getElementById("camera-feed");
+  if (!video || !video.videoWidth || video.style.display === "none") return;
+
+  state.isProcessingRealTimeFrame = true;
+
+  const hudText = document.getElementById("realtime-hud-text");
+  if (hudText) hudText.textContent = "⚡ Analyzing live frame...";
+
+  const canvas = document.createElement("canvas");
+  const maxDim = 640;
+  let w = video.videoWidth;
+  let h = video.videoHeight;
+  if (w > maxDim || h > maxDim) {
+    if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+    else { w = Math.round((w * maxDim) / h); h = maxDim; }
+  }
+  canvas.width = w;
+  canvas.height = h;
+
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0, w, h);
+  const base64Image = canvas.toDataURL("image/jpeg", 0.75);
+
+  fetch('/api/scan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: state.user_id, image: base64Image, filename: 'realtime_frame.jpg' })
+  })
+  .then(r => r.json())
+  .then(data => {
+    state.isProcessingRealTimeFrame = false;
+    if (data.success && data.scan) {
+      state.latestScan = data.scan;
+      displayScanResult(data.scan);
+      if (hudText) {
+        const confPercent = Math.round((data.scan.confidence || 0.95) * 100);
+        hudText.textContent = `Detected: ${data.scan.material} (${confPercent}%)`;
+      }
+    }
+  })
+  .catch(err => {
+    state.isProcessingRealTimeFrame = false;
+    console.error("Realtime frame error:", err);
+  });
+}
 
 function startCamera(facingMode) {
   const video = document.getElementById("camera-feed");
@@ -1136,8 +1240,18 @@ function stopCamera() {
   if (video) video.style.display = "none";
 }
 
+state.activeScanId = null;
+
+function generateScanId() {
+  return "scan_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
+}
+
 function resetScannerView() {
+  if (state.isRealTimeScanning) stopRealTimeScanner();
   stopCamera();
+  state.activeScanId = null;
+  state.latestScan = null;
+
   const overlay = document.getElementById("scanner-overlay");
   const previewImg = document.getElementById("scan-preview-img");
   const resultsCard = document.getElementById("card-scan-results");
@@ -1145,10 +1259,22 @@ function resetScannerView() {
   const btnSnap = document.getElementById("btn-snap");
   const btnSwitch = document.getElementById("btn-switch-cam");
   const btnRetake = document.getElementById("btn-retake");
+  const fileUploader = document.getElementById("file-uploader");
+  const nonWasteBox = document.getElementById("scan-nonwaste-box");
+  const multiBox = document.getElementById("scan-multiobjects-box");
+  const uncBox = document.getElementById("scan-uncertainty-box");
 
-  if (previewImg) previewImg.style.display = "none";
+  if (fileUploader) fileUploader.value = "";
+  if (previewImg) {
+    previewImg.src = "";
+    previewImg.style.display = "none";
+  }
   if (overlay) overlay.style.display = "flex";
   if (resultsCard) resultsCard.style.display = "none";
+  if (nonWasteBox) nonWasteBox.style.display = "none";
+  if (multiBox) multiBox.style.display = "none";
+  if (uncBox) uncBox.style.display = "none";
+
   if (btnCapture) btnCapture.style.display = "inline-flex";
   if (btnSnap) btnSnap.style.display = "none";
   if (btnSwitch) btnSwitch.style.display = "none";
@@ -1163,6 +1289,9 @@ function capturePhoto() {
     triggerToast("Camera feed not ready yet. Please wait.", "warning");
     return;
   }
+
+  const scanId = generateScanId();
+  state.activeScanId = scanId;
 
   const canvas = document.createElement("canvas");
   const maxDim = 1024;
@@ -1179,7 +1308,6 @@ function capturePhoto() {
   ctx.drawImage(video, 0, 0, w, h);
   const base64Image = canvas.toDataURL("image/jpeg", 0.85);
 
-  // Show captured photo preview
   const previewImg = document.getElementById("scan-preview-img");
   if (previewImg) {
     previewImg.src = base64Image;
@@ -1188,24 +1316,50 @@ function capturePhoto() {
   video.style.display = "none";
 
   stopCamera();
-  processImageScan(base64Image, "cam_shot.jpg");
+  processImageScan(base64Image, "cam_shot.jpg", scanId);
 }
 
 function handleFileUpload(event) {
+  const fileUploader = document.getElementById("file-uploader");
   const file = event.target.files[0];
   if (!file) return;
 
   if (!file.type.startsWith("image/")) {
     triggerToast("Please select a valid image file (JPG, PNG, WebP).", "danger");
+    if (fileUploader) fileUploader.value = "";
     return;
   }
-  
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const rawUrl = e.target.result;
-    compressAndProcessImage(rawUrl, file.name);
-  };
-  reader.readAsDataURL(file);
+
+  if (file.size > 10 * 1024 * 1024) {
+    triggerToast("File size too large (max 10MB). Please select a smaller photo.", "danger");
+    if (fileUploader) fileUploader.value = "";
+    return;
+  }
+
+  const scanId = generateScanId();
+  state.activeScanId = scanId;
+
+  // Clear previous scan results immediately
+  clearScanResults();
+
+  // Preview the image before sending
+  const previewUrl = URL.createObjectURL(file);
+  const previewImg = document.getElementById("scan-preview-img");
+  const overlay = document.getElementById("scanner-overlay");
+  if (previewImg) {
+    previewImg.src = previewUrl;
+    previewImg.style.display = "block";
+  }
+  if (overlay) overlay.style.display = "none";
+  const camFeed = document.getElementById("camera-feed");
+  if (camFeed) camFeed.style.display = "none";
+  const btnRetake = document.getElementById("btn-retake");
+  if (btnRetake) btnRetake.style.display = "inline-flex";
+
+  // Send actual file bytes via FormData — DO NOT read as base64
+  processFileScan(file, scanId);
+
+  if (fileUploader) fileUploader.value = "";
 }
 
 function handleFileDrop(event) {
@@ -1216,17 +1370,104 @@ function handleFileDrop(event) {
     triggerToast("Please drop a valid image file.", "danger");
     return;
   }
-  
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    compressAndProcessImage(e.target.result, file.name);
-  };
-  reader.readAsDataURL(file);
+  if (file.size > 10 * 1024 * 1024) {
+    triggerToast("File size too large (max 10MB). Please select a smaller photo.", "danger");
+    return;
+  }
+
+  const scanId = generateScanId();
+  state.activeScanId = scanId;
+
+  // Clear previous scan results immediately
+  clearScanResults();
+
+  // Preview the image before sending
+  const previewUrl = URL.createObjectURL(file);
+  const previewImg = document.getElementById("scan-preview-img");
+  const overlay = document.getElementById("scanner-overlay");
+  if (previewImg) {
+    previewImg.src = previewUrl;
+    previewImg.style.display = "block";
+  }
+  if (overlay) overlay.style.display = "none";
+  const camFeed = document.getElementById("camera-feed");
+  if (camFeed) camFeed.style.display = "none";
+  const btnRetake = document.getElementById("btn-retake");
+  if (btnRetake) btnRetake.style.display = "inline-flex";
+
+  // Send actual file bytes via FormData
+  processFileScan(file, scanId);
 }
 
-function compressAndProcessImage(dataUrl, filename) {
+// ==========================================
+// SCAN HELPERS: clear state + FormData upload
+// ==========================================
+
+/**
+ * Clear previous scan results when a new image is selected.
+ * Ensures every scan request produces a fresh AI analysis.
+ */
+function clearScanResults() {
+  const resultsCard = document.getElementById("card-scan-results");
+  const nonWasteBox = document.getElementById("scan-nonwaste-box");
+  const multiBox = document.getElementById("scan-multiobjects-box");
+  const uncBox = document.getElementById("scan-uncertainty-box");
+  if (resultsCard) resultsCard.style.display = "none";
+  if (nonWasteBox) nonWasteBox.style.display = "none";
+  if (multiBox) multiBox.style.display = "none";
+  if (uncBox) uncBox.style.display = "none";
+}
+
+/**
+ * Send a File object (from file picker or drag-and-drop) to /api/scan
+ * using multipart FormData. The browser sets the correct Content-Type
+ * and multipart boundary automatically.
+ *
+ * DO NOT manually set Content-Type: application/json here.
+ */
+function processFileScan(file, scanId) {
+  if (scanId && state.activeScanId && scanId !== state.activeScanId) return;
+
+  const laser = document.getElementById("scanner-laser");
+  const statusOverlay = document.getElementById("scanner-status-overlay");
+  const statusBadge = document.getElementById("scan-api-status-badge");
+
+  if (laser) laser.style.display = "block";
+  if (statusOverlay) statusOverlay.style.display = "flex";
+  if (statusBadge) {
+    statusBadge.textContent = "🔍 Analyzing image with Vision AI...";
+    statusBadge.style.color = "#f9a826";
+    statusBadge.style.background = "rgba(249,168,38,0.15)";
+  }
+
+  announceAccessibility("AI waste scanner running. Analyzing material composition and environmental impact.");
+
+  const formData = new FormData();
+  formData.append("image", file);           // actual file bytes
+  formData.append("user_id", state.user_id);
+  formData.append("scan_id", scanId);
+  // Note: Do NOT set Content-Type header manually — browser sets multipart/form-data
+
+  fetch('/api/scan', {
+    method: 'POST',
+    body: formData
+  })
+  .then(r => r.json())
+  .then(data => _handleScanResponse(data, scanId, laser, statusOverlay, statusBadge))
+  .catch(err => _handleScanError(err, scanId, laser, statusOverlay, statusBadge));
+}
+
+/**
+ * compressAndProcessImage is kept for camera (canvas) captures which don't have a File object.
+ * Camera captures still use JSON/base64 because canvas.toDataURL() gives a data URL, not a File.
+ */
+function compressAndProcessImage(dataUrl, filename, scanId) {
+  state.activeScanId = scanId;
+  clearScanResults();
   const img = new Image();
   img.onload = function() {
+    if (scanId !== state.activeScanId) return;
+
     const canvas = document.createElement("canvas");
     const maxDim = 1024;
     let w = img.width;
@@ -1241,7 +1482,6 @@ function compressAndProcessImage(dataUrl, filename) {
     ctx.drawImage(img, 0, 0, w, h);
     const compressedBase64 = canvas.toDataURL("image/jpeg", 0.85);
 
-    // Set preview
     const previewImg = document.getElementById("scan-preview-img");
     const overlay = document.getElementById("scanner-overlay");
     if (previewImg) {
@@ -1249,17 +1489,20 @@ function compressAndProcessImage(dataUrl, filename) {
       previewImg.style.display = "block";
     }
     if (overlay) overlay.style.display = "none";
-    document.getElementById("camera-feed").style.display = "none";
+    const camFeed = document.getElementById("camera-feed");
+    if (camFeed) camFeed.style.display = "none";
 
     const btnRetake = document.getElementById("btn-retake");
     if (btnRetake) btnRetake.style.display = "inline-flex";
 
-    processImageScan(compressedBase64, filename);
+    processImageScan(compressedBase64, filename, scanId);
   };
   img.src = dataUrl;
 }
 
-function processImageScan(base64Data, filename) {
+function processImageScan(base64Data, filename, scanId) {
+  if (scanId && state.activeScanId && scanId !== state.activeScanId) return;
+
   const laser = document.getElementById("scanner-laser");
   const statusOverlay = document.getElementById("scanner-status-overlay");
   const statusBadge = document.getElementById("scan-api-status-badge");
@@ -1267,126 +1510,187 @@ function processImageScan(base64Data, filename) {
   if (laser) laser.style.display = "block";
   if (statusOverlay) statusOverlay.style.display = "flex";
   if (statusBadge) {
-    statusBadge.textContent = "⏳ Analyzing with Vision AI...";
+    statusBadge.textContent = "🔍 Analyzing image with Vision AI...";
     statusBadge.style.color = "#f9a826";
     statusBadge.style.background = "rgba(249,168,38,0.15)";
   }
-  
+
   announceAccessibility("AI waste scanner running. Analyzing material composition and environmental impact.");
-  
+
+  // Camera captures use JSON/base64 because canvas.toDataURL() gives a data URL
   fetch('/api/scan', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: state.user_id, image: base64Data, filename: filename })
+    body: JSON.stringify({ user_id: state.user_id, image: base64Data, filename: filename, scan_id: scanId })
   })
   .then(r => r.json())
-  .then(data => {
-    if (laser) laser.style.display = "none";
-    if (statusOverlay) statusOverlay.style.display = "none";
-    if (statusBadge) {
-      statusBadge.textContent = "🟢 Vision AI Ready";
-      statusBadge.style.color = "#52e065";
-      statusBadge.style.background = "rgba(82,224,101,0.15)";
+  .then(data => _handleScanResponse(data, scanId, laser, statusOverlay, statusBadge))
+  .catch(err => _handleScanError(err, scanId, laser, statusOverlay, statusBadge));
+}
+
+// Shared response handler
+function _handleScanResponse(data, scanId, laser, statusOverlay, statusBadge) {
+  // Ignore stale out-of-order race condition responses
+  if (data.scan_id && state.activeScanId && data.scan_id !== state.activeScanId) {
+    console.log(`[RACE CONDITION PREVENTED] Ignored stale scan_id: ${data.scan_id}`);
+    return;
+  }
+
+  if (laser) laser.style.display = "none";
+  if (statusOverlay) statusOverlay.style.display = "none";
+  if (statusBadge) {
+    statusBadge.textContent = "🟢 Vision AI Ready";
+    statusBadge.style.color = "#52e065";
+    statusBadge.style.background = "rgba(82,224,101,0.15)";
+  }
+
+  if (data.success && data.scan) {
+    state.latestScan = data.scan;
+    if (data.profile) updateUIWithProfile(data.profile);
+    displayScanResult(data.scan);
+
+    if (!data.scan.is_waste) {
+      triggerToast("Non-waste image detected. Please upload a waste item.", "warning");
+    } else if (data.is_duplicate) {
+      triggerToast(`Scan recorded! Reward previously earned within 30s.`, "info");
+    } else {
+      triggerConfetti();
+      triggerToast(`Scanned: ${data.scan.item || data.scan.material}! +${data.scan.xp_earned} Eco Coins earned`, "success");
     }
 
-    if (data.success && data.scan) {
-      state.latestScan = data.scan;
-      if (data.profile) updateUIWithProfile(data.profile);
-      displayScanResult(data.scan);
-
-      if (data.is_duplicate) {
-        triggerToast(`Scan recorded! Reward previously earned within 30s.`, "info");
-      } else {
-        triggerConfetti();
-        triggerToast(`Scanned successfully: ${data.scan.material}! +${data.scan.xp_earned} Eco Coins earned`, "success");
-      }
-      
-      // Auto complete challenge
-      if (data.scan.recyclable) {
-        completeChallengeLocal("scan_recycle");
-      }
-      loadScanHistory();
+    if (data.scan.recyclable) {
+      completeChallengeLocal("scan_recycle");
     }
-  })
-  .catch(err => {
-    if (laser) laser.style.display = "none";
-    if (statusOverlay) statusOverlay.style.display = "none";
-    if (statusBadge) {
-      statusBadge.textContent = "🟢 Offline Mode";
-      statusBadge.style.color = "#52e065";
-    }
-    console.error("Scan API error: ", err);
-    triggerToast("AI analysis complete (offline simulation mode).", "info");
-    
-    const mockScan = {
-      material: "PET Plastic Bottle",
-      category: "Plastic Packaging",
-      confidence: 0.95,
-      recyclable: true,
-      disposal_recommendation: "Empty, rinse and place in plastic recycling bin.",
-      environmental_impact: "Moderate (450 yrs breakdown)",
-      eco_alternative: "Switch to a reusable stainless steel water bottle.",
-      explanation: "PET (#1) is highly recyclable into polyester fibers and new bottles.",
-      is_uncertain: false,
-      reuse_ideas: ["Cut in half for seedling planter", "Clean and reuse for dry bean storage"],
-      decomposition_time: "450 Years",
-      co2_impact: -0.083,
-      xp_earned: 50,
-      coins_earned: 50
-    };
-    state.latestScan = mockScan;
-    displayScanResult(mockScan);
-    
-    state.profile.green_score = Math.min(state.profile.green_score + 25, 1000);
-    state.profile.coins += 50;
-    state.profile.xp += 50;
-    updateUIWithProfile(state.profile);
-    completeChallengeLocal("scan_recycle");
     loadScanHistory();
-  });
+  } else if (!data.success && data.error) {
+    triggerToast(data.error, "danger");
+  }
+}
+
+// Shared error handler
+function _handleScanError(err, scanId, laser, statusOverlay, statusBadge) {
+  if (scanId && state.activeScanId && scanId !== state.activeScanId) return;
+
+  if (laser) laser.style.display = "none";
+  if (statusOverlay) statusOverlay.style.display = "none";
+  if (statusBadge) {
+    statusBadge.textContent = "🟢 Offline Mode";
+    statusBadge.style.color = "#52e065";
+  }
+  console.error("Scan API error: ", err);
+  triggerToast("We couldn't analyze this image right now. Please try again.", "warning");
 }
 
 function displayScanResult(scan) {
+  if (scan.scan_id && state.activeScanId && scan.scan_id !== state.activeScanId) return;
+
   const resultsCard = document.getElementById("card-scan-results");
   if (resultsCard) resultsCard.style.display = "block";
 
-  setText("res-material", scan.material || "Waste Item");
-  setText("res-explanation", scan.explanation || "Analyzed by EcoSphere AI.");
+  const itemTitle = scan.item || scan.material || "Waste Item";
+  setText("res-material", itemTitle);
+  setText("res-explanation", scan.reason || scan.explanation || "Analyzed by EcoSphere Vision AI.");
   
   const catBadge = document.getElementById("res-category-badge");
-  if (catBadge) catBadge.textContent = scan.category || "General Waste";
+  if (catBadge) catBadge.textContent = scan.category || "Plastic";
 
-  const recycBadge = document.getElementById("res-recyclable-badge");
-  if (recycBadge) {
-    if (scan.recyclable) {
-      recycBadge.textContent = "♻️ Recyclable";
-      recycBadge.style.color = "#52e065";
-      recycBadge.style.borderColor = "rgba(82,224,101,0.4)";
+  const binBadge = document.getElementById("res-bin-badge");
+  if (binBadge) {
+    const binName = scan.bin || (scan.recyclable ? "Dry Waste / Recycling" : "Special Disposal / Compost");
+    binBadge.textContent = `🗑️ Bin: ${binName}`;
+  }
+
+  // Handle Non-Waste Images
+  const nonWasteBox = document.getElementById("scan-nonwaste-box");
+  const nonWasteReason = document.getElementById("scan-nonwaste-reason");
+  if (nonWasteBox) {
+    if (scan.is_waste === false) {
+      nonWasteBox.style.display = "block";
+      if (nonWasteReason) nonWasteReason.textContent = scan.reason || "This doesn't appear to be a waste item. Please upload an image of an item you want to dispose of.";
     } else {
-      recycBadge.textContent = "⚠️ Special Disposal / Compost";
-      recycBadge.style.color = "#f9a826";
-      recycBadge.style.borderColor = "rgba(249,168,38,0.4)";
+      nonWasteBox.style.display = "none";
     }
   }
 
+  // Confidence Thresholding Rules:
+  // 90-100%: Very confident
+  // 70-89%: Confident
+  // 50-69%: Low confidence ("Possibly...")
+  // <50%: Unable to confidently identify
   const confPercent = Math.round((scan.confidence || 0.90) * 100);
-  setText("res-confidence-text", `${confPercent}%`);
-
-  // Show uncertainty box if confidence is low or is_uncertain
+  const confText = document.getElementById("res-confidence-text");
   const uncBox = document.getElementById("scan-uncertainty-box");
-  if (uncBox) {
-    uncBox.style.display = (scan.is_uncertain || confPercent < 60) ? "block" : "none";
+  const uncTitle = document.getElementById("uncertainty-title");
+  const uncDesc = document.getElementById("uncertainty-desc");
+
+  if (confText) {
+    if (confPercent >= 90) {
+      confText.textContent = `${confPercent}%`;
+      confText.style.color = "#52e065";
+    } else if (confPercent >= 70) {
+      confText.textContent = `${confPercent}%`;
+      confText.style.color = "#3ddc84";
+    } else if (confPercent >= 50) {
+      confText.textContent = `${confPercent}%`;
+      confText.style.color = "#f9a826";
+    } else {
+      confText.textContent = `${confPercent}%`;
+      confText.style.color = "#ff6b6b";
+    }
   }
 
-  setText("res-disposal", scan.disposal_recommendation || "Place in designated collection container.");
-  setText("res-alternative", scan.eco_alternative || "Use a durable reusable alternative.");
+  if (uncBox) {
+    if (confPercent < 50 || scan.is_uncertain) {
+      uncBox.style.display = "block";
+      if (uncTitle) uncTitle.textContent = "⚠️ Unable to Confidently Identify";
+      if (uncDesc) uncDesc.textContent = "The image is blurry or unclear. Please upload a clearer image with the object centered and well-lit.";
+    } else if (confPercent < 70) {
+      uncBox.style.display = "block";
+      if (uncTitle) uncTitle.textContent = `⚠️ Low AI Confidence Notice (Possibly ${itemTitle})`;
+      if (uncDesc) uncDesc.textContent = `AI confidence is ${confPercent}%. Please verify if the object is indeed ${itemTitle}.`;
+    } else {
+      uncBox.style.display = "none";
+    }
+  }
+
+  // Handle Multi-Objects Breakdown List
+  const multiBox = document.getElementById("scan-multiobjects-box");
+  const multiList = document.getElementById("scan-multiobjects-list");
+  if (multiBox && multiList) {
+    if (scan.multiple_objects && scan.multiple_objects.length > 0) {
+      multiBox.style.display = "block";
+      multiList.innerHTML = "";
+      scan.multiple_objects.forEach((obj, idx) => {
+        const itemDiv = document.createElement("div");
+        itemDiv.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid rgba(255,255,255,0.08);";
+        
+        const objConf = Math.round((obj.confidence || 0.90) * 100);
+        itemDiv.innerHTML = `
+          <div>
+            <strong style="color:#fff; font-size:0.82rem;">${idx + 1}. ${obj.item || obj.material || 'Object'}</strong>
+            <span style="background:rgba(82,224,101,0.15); color:#52e065; font-size:0.68rem; padding:2px 8px; border-radius:10px; margin-left:6px;">${obj.category || 'Waste'}</span>
+          </div>
+          <div style="text-align:right;">
+            <span style="color:#00d4ff; font-size:0.75rem; font-weight:700;">${obj.bin || 'Recycling'}</span>
+            <span style="color:#94a3b8; font-size:0.7rem; margin-left:6px;">${objConf}%</span>
+          </div>
+        `;
+        multiList.appendChild(itemDiv);
+      });
+    } else {
+      multiBox.style.display = "none";
+    }
+  }
+
+  setText("res-disposal", scan.disposal_method ? `${scan.disposal_method}: ${scan.disposal_recommendation || ''}` : scan.disposal_recommendation);
+  setText("res-alternative", scan.environmental_tip || scan.eco_alternative || "Use a durable reusable alternative.");
   setText("res-decomp", scan.decomposition_time || "Varies");
   setText("res-co2", `${scan.co2_impact || -0.05} kg CO₂`);
 
   const reuseUl = document.getElementById("res-reuse");
   if (reuseUl) {
     reuseUl.innerHTML = "";
-    const ideas = scan.reuse_ideas || ["Repurpose as a planter or household organizer."];
+    const ideas = scan.reuse_ideas || ["Repurpose as a household organizer or seedling planter."];
     ideas.forEach(idea => {
       const li = document.createElement("li");
       li.textContent = idea;
@@ -1397,10 +1701,8 @@ function displayScanResult(scan) {
   const earnedXP = scan.xp_earned || scan.coins_earned || 40;
   setText("res-reward", scan.is_duplicate ? "Reward claimed previously (30s rule)" : `+${earnedXP} Eco Coins & +${earnedXP} XP`);
 
-  // Scroll results card into view smoothly
-  resultsCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-  announceAccessibility(`Scan complete. Detected ${scan.material}. ${scan.disposal_recommendation}`);
+  resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  announceAccessibility(`Scan complete. Detected ${itemTitle}. ${scan.disposal_recommendation}`);
 }
 
 // Voice Output (TTS) Controls for Scan Results
@@ -1482,24 +1784,56 @@ function loadScanHistory() {
       const container = document.getElementById("scan-history-list");
       if (!container) return;
       if (!scans || scans.length === 0) {
-        container.innerHTML = `<div style="font-size:0.75rem; color:#64748b; text-align:center; padding:12px;">No scan history recorded yet.</div>`;
+        container.innerHTML = `<div style="font-size:0.75rem;color:#64748b;text-align:center;padding:20px;min-width:200px;">No scan history recorded yet.</div>`;
         return;
       }
-      container.innerHTML = scans.map(s => {
+
+      // Update today's impact sidebar
+      updateTodayImpact(scans);
+
+      // Category → color/icon map
+      const catMap = {
+        'Plastic': { color: '#3ddc84', icon: '🧴' },
+        'Paper/Cardboard': { color: '#f59e0b', icon: '📄' },
+        'Glass': { color: '#60a5fa', icon: '🫙' },
+        'Metal': { color: '#94a3b8', icon: '🥫' },
+        'Organic/Wet Waste': { color: '#a3e635', icon: '🌿' },
+        'E-Waste': { color: '#f472b6', icon: '📱' },
+        'Textile': { color: '#c084fc', icon: '👕' },
+        'Hazardous': { color: '#f87171', icon: '⚠️' },
+      };
+
+      // Horizontal scrollable cards
+      container.innerHTML = scans.slice(0, 8).map(s => {
         const confPct = Math.round((s.confidence || 0.9) * 100);
-        const dt = s.scanned_at ? new Date(s.scanned_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+        const cat = s.category || 'General';
+        const ci = catMap[cat] || { color: '#52e065', icon: '♻️' };
+        const now = Date.now();
+        const scannedAt = s.scanned_at ? new Date(s.scanned_at) : null;
+        let timeAgo = 'Recently';
+        if (scannedAt) {
+          const diff = Math.round((now - scannedAt.getTime()) / 60000);
+          timeAgo = diff < 1 ? 'Just now' : diff < 60 ? `${diff} mins ago` : `${Math.round(diff/60)} hr ago`;
+        }
         return `
-          <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <div style="width:32px; height:32px; border-radius:50%; background:rgba(82,224,101,0.15); border:1px solid rgba(82,224,101,0.3); display:flex; align-items:center; justify-content:center; font-size:0.9rem;">📷</div>
-              <div>
-                <div style="font-size:0.8rem; font-weight:700; color:#fff;">${s.material || 'Waste Item'}</div>
-                <div style="font-size:0.65rem; color:#64748b;">${s.category || 'General'} · ${confPct}% AI confidence</div>
-              </div>
+          <div style="flex-shrink:0;width:170px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:border-color 0.2s;"
+               onmouseover="this.style.borderColor='rgba(82,224,101,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+            <!-- Thumbnail placeholder -->
+            <div style="height:70px;background:rgba(82,224,101,0.06);border:1px solid rgba(82,224,101,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:2rem;">
+              ${ci.icon}
             </div>
-            <div style="text-align:right;">
-              <div style="font-size:0.72rem; font-weight:700; color:#f9a826;">+${s.coins_earned || 40} 🪙</div>
-              <div style="font-size:0.62rem; color:#475569;">${dt}</div>
+            <!-- Item name + badge row -->
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:3px;">
+                <span style="font-size:0.8rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:95px;">${s.material || 'Waste Item'}</span>
+                <span style="font-size:0.7rem;padding:1px 6px;border-radius:8px;background:rgba(82,224,101,0.12);border:1px solid rgba(82,224,101,0.25);color:${ci.color};white-space:nowrap;flex-shrink:0;">${cat}</span>
+              </div>
+              <div style="font-size:0.68rem;color:#64748b;">${confPct}% Confidence</div>
+            </div>
+            <!-- Footer: time + coins -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;">
+              <span style="font-size:0.65rem;color:#475569;">${timeAgo}</span>
+              <span style="font-size:0.72rem;font-weight:700;color:#c7fe73;">+${s.coins_earned || 40} 🪙</span>
             </div>
           </div>
         `;
@@ -1507,6 +1841,37 @@ function loadScanHistory() {
     })
     .catch(err => console.error("Error loading scan history:", err));
 }
+
+function updateTodayImpact(scans) {
+  // Count today's scans
+  const today = new Date().toDateString();
+  const todayScans = (scans || []).filter(s => {
+    if (!s.scanned_at) return false;
+    return new Date(s.scanned_at).toDateString() === today;
+  });
+
+  const scanCount = todayScans.length;
+  const totalCo2 = todayScans.reduce((sum, s) => sum + (parseFloat(s.co2_saved) || 0.083), 0);
+  const totalCoins = todayScans.reduce((sum, s) => sum + (parseInt(s.coins_earned) || 40), 0);
+
+  // Update ring percentage (capped at 100%)
+  const pct = Math.min(100, Math.round((scanCount / 10) * 100));
+  const circumference = 2 * Math.PI * 44; // r=44
+  const offset = circumference - (pct / 100) * circumference;
+
+  const ring = document.getElementById('impact-ring');
+  const pctEl = document.getElementById('impact-pct');
+  if (ring) ring.style.strokeDashoffset = offset;
+  if (pctEl) pctEl.textContent = pct + '%';
+
+  const scansEl = document.getElementById('today-scans');
+  const co2El = document.getElementById('today-co2');
+  const coinsEl = document.getElementById('today-coins');
+  if (scansEl) scansEl.textContent = scanCount;
+  if (co2El) co2El.textContent = totalCo2.toFixed(1) + ' kg';
+  if (coinsEl) coinsEl.textContent = `+${totalCoins} 🪙`;
+}
+
 
 // ==========================================
 // AI ECO COACH CHAT SPEECH INTEGRATIONS

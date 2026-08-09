@@ -34,9 +34,10 @@ def test_auth_flow(client):
 
     # 2. Register a new user with a unique email so repeated test runs do not collide
     random_id = uuid.uuid4().hex[:8]
+    test_email = f"alex.mercer+{random_id}@ecosphere.com"
     user_payload = {
         "name": "Alex Mercer",
-        "email": f"alex.mercer+{random_id}@ecosphere.com",
+        "email": test_email,
         "password": "securepassword123"
     }
     res = client.post('/api/auth/register', json=user_payload)
@@ -52,7 +53,7 @@ def test_auth_flow(client):
 
     # 4. Login with incorrect password should fail
     login_fail_payload = {
-        "email": "alex.mercer@ecosphere.com",
+        "email": test_email,
         "password": "wrongpassword"
     }
     res = client.post('/api/auth/login', json=login_fail_payload)
@@ -62,21 +63,21 @@ def test_auth_flow(client):
 
     # 5. Login with correct password should pass and set session
     login_success_payload = {
-        "email": "alex.mercer@ecosphere.com",
+        "email": test_email,
         "password": "securepassword123"
     }
     res = client.post('/api/auth/login', json=login_success_payload)
     assert res.status_code == 200
     data = json.loads(res.data)
     assert data['success'] is True
-    assert data['user']['email'] == "alex.mercer@ecosphere.com"
+    assert data['user']['email'] == test_email
 
     # 6. Current user should be logged in now
     res = client.get('/api/auth/me')
     assert res.status_code == 200
     data = json.loads(res.data)
     assert data['logged_in'] is True
-    assert data['user']['email'] == "alex.mercer@ecosphere.com"
+    assert data['user']['email'] == test_email
 
     # 7. Logout should clear session
     res = client.post('/api/auth/logout')

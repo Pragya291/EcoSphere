@@ -1064,176 +1064,299 @@
             <!-- ==========================================
                  AI SCANNER COMPONENT VIEW (UPGRADED)
                  ========================================== -->
-            <div id="view-scanner" style="display: none; padding: 24px 30px; max-width: 960px; margin: 0 auto; width:100%;">
-                <div class="card" style="border: 1px solid rgba(82, 224, 101, 0.25); background: rgba(10, 28, 17, 0.85);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                        <div>
-                            <h2 style="margin:0 0 4px; font-size:1.4rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
-                                📸 AI Waste &amp; Object Scanner
-                            </h2>
-                            <p class="text-secondary" style="margin:0; font-size:0.8rem;">
-                                Capture or upload an image to identify recyclables, get disposal advice, discover eco alternatives, and earn Eco Coins.
-                            </p>
-                        </div>
-                        <span id="scan-api-status-badge" style="background:rgba(82,224,101,0.15); border:1px solid rgba(82,224,101,0.3); color:#52e065; padding:4px 12px; border-radius:20px; font-size:0.72rem; font-weight:700;">
-                            🟢 Vision AI Ready
-                        </span>
-                    </div>
-                    
-                    <!-- Scanner Viewport -->
-                    <div class="scanner-viewport" style="height: 280px; position:relative; overflow:hidden; border-radius:16px; border:2px dashed rgba(82,224,101,0.3); background:#030a06; display:flex; align-items:center; justify-content:center;">
-                        <video id="camera-feed" class="camera-feed" autoplay playsinline style="width:100%; height:100%; object-fit:cover; display:none;"></video>
-                        <img id="scan-preview-img" style="width:100%; height:100%; object-fit:contain; display:none; background:#000;" alt="Scan preview">
-                        
-                        <div class="scanner-laser" id="scanner-laser" style="display:none; position:absolute; top:0; left:0; width:100%; height:4px; background:linear-gradient(to right, transparent, #52e065, transparent); box-shadow:0 0 14px #52e065; animation:laserSweep 2s ease-in-out infinite;"></div>
-                        
-                        <div id="scanner-status-overlay" style="display:none; position:absolute; inset:0; background:rgba(3,12,6,0.85); backdrop-filter:blur(4px); flex-direction:column; align-items:center; justify-content:center; gap:10px; color:#fff; z-index:10;">
-                            <div class="spinner" style="width:36px; height:36px; border:3px solid rgba(82,224,101,0.2); border-top-color:#52e065; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
-                            <span id="scanner-status-text" style="font-size:0.9rem; font-weight:700; color:#52e065;">Analyzing image with Vision AI...</span>
-                            <span style="font-size:0.72rem; color:#94a3b8;">Classifying material composition, recyclability &amp; carbon footprint</span>
-                        </div>
+            <div id="view-scanner" style="display: none; padding: 24px 28px; max-width: 1100px; margin: 0 auto; width:100%; box-sizing:border-box; overflow-x:hidden;">
 
-                        <div class="scanner-overlay" id="scanner-overlay" style="display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; color:#94a3b8;">
-                            <span style="font-size:2.5rem;">📷</span>
-                            <p style="margin:0; font-size:0.9rem; font-weight:700; color:#fff;">Upload an image to scan</p>
-                            <span style="font-size:0.75rem; color:#64748b;">Drag &amp; drop photos below or use the upload button.</span>
-                        </div>
-                    </div>
-
-                    <!-- Scanner Controls -->
-                    <div class="scan-controls" style="margin:16px 0; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-                        <button class="btn btn-secondary" id="btn-retake" onclick="resetScannerView()" style="display:none; align-items:center; gap:6px;">
-                            <span>↻</span> Retake / Scan Again
-                        </button>
-                        <input type="file" id="file-uploader" accept="image/*" style="display:none;" onchange="handleFileUpload(event)">
-                        <button class="btn btn-secondary" onclick="document.getElementById('file-uploader').click()" style="display:inline-flex; align-items:center; gap:6px;">
-                            <span>📁</span> Upload Photo
-                        </button>
-                    </div>
-
-                    <!-- Drag & Drop Area -->
-                    <div id="drag-area" style="border: 2px dashed rgba(82,224,101,0.25); border-radius: 12px; padding: 18px; text-align: center; color: #94a3b8; cursor: pointer; background:rgba(3,12,6,0.4); transition:all 0.2s;"
-                         ondragover="event.preventDefault(); this.style.borderColor='#52e065';" ondragleave="this.style.borderColor='rgba(82,224,101,0.25)'" ondrop="handleFileDrop(event)" onclick="document.getElementById('file-uploader').click()">
-                        <span style="font-size:0.85rem;">📥 <strong>Drag &amp; Drop Waste Images Here to Scan</strong> (PET Bottles, Cans, E-Waste, Organic Scraps, Reusable Items)</span>
-                    </div>
+                <!-- Page Header -->
+                <div style="margin-bottom:20px;">
+                    <h2 style="margin:0 0 4px; font-size:1.55rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;"
+                    >AI Waste Scanner <span style="color:#52e065;">✦</span></h2>
+                    <p class="text-secondary" style="margin:0; font-size:0.82rem;">Scan smart. Sort right. Save our planet.</p>
                 </div>
 
-                <!-- Analysis Results Card -->
-                <div class="card" id="card-scan-results" style="display: none; margin-top: 20px; border:1px solid rgba(82,224,101,0.3); background:rgba(10,28,17,0.9);">
-                    <!-- Result Top Header -->
-                    <div style="display:flex; justify-content:space-between; align-items:start; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:14px;">
-                        <div>
-                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
-                                <h3 id="res-material" style="margin:0; font-size:1.3rem; font-weight:800; color:#ffffff;">Plastic Bottle</h3>
-                                <span id="res-category-badge" style="background:rgba(82,224,101,0.15); border:1px solid rgba(82,224,101,0.4); color:#52e065; padding:2px 10px; border-radius:12px; font-size:0.7rem; font-weight:700;">Plastic Packaging</span>
-                                <span id="res-recyclable-badge" style="background:rgba(0,212,255,0.15); border:1px solid rgba(0,212,255,0.4); color:#00d4ff; padding:2px 10px; border-radius:12px; font-size:0.7rem; font-weight:700;">Recyclable</span>
+                <!-- 2-Column Layout: Main + Sidebar -->
+                <div style="display:flex; flex-wrap:wrap; gap:18px; align-items:start; width:100%;">
+
+                    <!-- LEFT: Main Scanner Card -->
+                    <div style="flex: 1 1 min(100%, 600px); min-width: 0;">
+                        <div class="card" style="border:1px solid rgba(82,224,101,0.25); background:rgba(10,28,17,0.88); padding:20px 22px;">
+
+                            <!-- Card Header -->
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                                <div style="display:flex; align-items:center; gap:12px;">
+                                    <div style="width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,rgba(82,224,101,0.2),rgba(0,212,255,0.1)); border:1px solid rgba(82,224,101,0.3); display:flex; align-items:center; justify-content:center; font-size:1.3rem;">📷</div>
+                                    <div>
+                                        <h3 style="margin:0 0 2px; font-size:1.05rem; font-weight:800; color:#fff;">AI Waste &amp; Object Scanner <span style="color:#52e065;">🌿</span></h3>
+                                        <p class="text-secondary" style="margin:0; font-size:0.75rem; line-height:1.4;">Capture or upload an image to identify recyclables, get disposal advice, discover eco alternatives, and earn Eco Coins.</p>
+                                    </div>
+                                </div>
+                                <span id="scan-api-status-badge" style="background:rgba(82,224,101,0.15); border:1px solid rgba(82,224,101,0.3); color:#52e065; padding:5px 14px; border-radius:20px; font-size:0.72rem; font-weight:700; white-space:nowrap; flex-shrink:0;">🟢 Vision AI Ready</span>
                             </div>
-                            <p style="margin:0; font-size:0.75rem; color:#94a3b8;" id="res-explanation">PET (#1) material identified via Vision AI pattern analysis.</p>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-size:0.65rem; color:#64748b;">AI Confidence</div>
-                            <div id="res-confidence-text" style="font-size:1.1rem; font-weight:800; color:#52e065; font-family:var(--font-number);">96%</div>
-                        </div>
-                    </div>
 
-                    <!-- Uncertainty Alert Box (Shown if AI confidence < 60% or is_uncertain) -->
-                    <div id="scan-uncertainty-box" style="display:none; padding:12px 16px; background:rgba(249,168,38,0.1); border:1px solid rgba(249,168,38,0.3); border-radius:12px; margin-bottom:14px; color:#f9a826; font-size:0.78rem;">
-                        <strong style="display:block; margin-bottom:4px; font-size:0.85rem;">⚠️ Low AI Confidence Notice</strong>
-                        I'm not fully confident about this image analysis. For better accuracy:
-                        <ul style="margin:6px 0 0 18px; padding:0; color:#94a3b8; font-size:0.73rem;">
-                            <li>Move closer to the object</li>
-                            <li>Improve lighting and remove shadows</li>
-                            <li>Keep the waste item centered in frame</li>
-                            <li>Avoid blurry photo captures</li>
-                        </ul>
-                    </div>
+                            <!-- Scanner Viewport -->
+                            <div class="scanner-viewport" style="position:relative; height:260px; border-radius:14px; border:2px dashed rgba(82,224,101,0.3); background:linear-gradient(160deg,#030a06 60%,rgba(10,28,17,0.95)); overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom:14px; transition:border-color 0.2s;"
+                                 ondragover="event.preventDefault(); this.style.borderColor='#52e065';" ondragleave="this.style.borderColor='rgba(82,224,101,0.3)'" ondrop="handleFileDrop(event)">
 
-                    <!-- Structured Metrics Grid -->
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
-                        
-                        <div style="padding:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:12px;">
-                            <div style="font-size:0.65rem; text-transform:uppercase; color:#64748b; letter-spacing:0.06em; margin-bottom:4px;">♻️ Recommended Disposal</div>
-                            <div id="res-disposal" style="font-size:0.8rem; color:#ffffff; font-weight:600; line-height:1.4;">Empty, rinse and place in plastic recycling bin.</div>
-                        </div>
+                                <!-- Hidden video + preview -->
+                                <video id="camera-feed" class="camera-feed" autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:none;"></video>
+                                <img id="scan-preview-img" style="width:100%;height:100%;object-fit:contain;display:none;background:#000;" alt="Scan preview">
 
-                        <div style="padding:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:12px;">
-                            <div style="font-size:0.65rem; text-transform:uppercase; color:#64748b; letter-spacing:0.06em; margin-bottom:4px;">🌱 Eco-Friendly Alternative</div>
-                            <div id="res-alternative" style="font-size:0.8rem; color:#52e065; font-weight:600; line-height:1.4;">Switch to a reusable stainless steel water bottle.</div>
-                        </div>
+                                <!-- Laser animation -->
+                                <div class="scanner-laser" id="scanner-laser" style="display:none;position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(to right,transparent,#52e065,transparent);box-shadow:0 0 14px #52e065;animation:laserSweep 2s ease-in-out infinite;"></div>
 
-                        <div style="padding:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:12px;">
-                            <div style="font-size:0.65rem; text-transform:uppercase; color:#64748b; letter-spacing:0.06em; margin-bottom:4px;">⏳ Decomposition Time</div>
-                            <div id="res-decomp" style="font-size:0.85rem; color:#ffffff; font-weight:700;">450 Years</div>
-                        </div>
+                                <!-- Processing overlay -->
+                                <div id="scanner-status-overlay" style="display:none;position:absolute;inset:0;background:rgba(3,12,6,0.88);backdrop-filter:blur(6px);flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;z-index:10;">
+                                    <div class="spinner" style="width:40px;height:40px;border:3px solid rgba(82,224,101,0.2);border-top-color:#52e065;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+                                    <span id="scanner-status-text" style="font-size:0.9rem;font-weight:700;color:#52e065;">Analyzing with Vision AI...</span>
+                                    <span style="font-size:0.72rem;color:#94a3b8;">Classifying material, recyclability &amp; carbon footprint</span>
+                                </div>
 
-                        <div style="padding:12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:12px;">
-                            <div style="font-size:0.65rem; text-transform:uppercase; color:#64748b; letter-spacing:0.06em; margin-bottom:4px;">🌍 CO₂ Impact Avoided</div>
-                            <div id="res-co2" style="font-size:0.85rem; color:#52e065; font-weight:700;">-0.083 kg CO₂</div>
-                        </div>
+                                <!-- Drop Prompt (shown when idle) -->
+                                <div class="scanner-overlay" id="scanner-overlay" style="display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;color:#94a3b8;padding:20px;width:100%;">
+                                    <!-- Decorative icon -->
+                                    <div style="width:64px;height:64px;border-radius:50%;background:rgba(82,224,101,0.1);border:2px solid rgba(82,224,101,0.25);display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin-bottom:4px;">📷</div>
+                                    <p style="margin:0;font-size:1rem;font-weight:700;color:#fff;">Upload an image to scan</p>
+                                    <span style="font-size:0.78rem;color:#64748b;">Drag &amp; drop a photo here, or click "Upload Photo" below</span>
+                                    <!-- Feature pills -->
+                                    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px;">
+                                        <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#94a3b8;padding:4px 12px;border-radius:20px;font-size:0.72rem;">🔍 Smart object recognition</span>
+                                        <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#94a3b8;padding:4px 12px;border-radius:20px;font-size:0.72rem;">♻️ Instant waste classification</span>
+                                        <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#94a3b8;padding:4px 12px;border-radius:20px;font-size:0.72rem;">🌱 Personalized eco tips</span>
+                                    </div>
+                                </div>
+                            </div>
 
-                    </div>
+                            <!-- Action Buttons Row: Upload only (no Real-Time Scan, no Live Camera) -->
+                            <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;">
+                                <input type="file" id="file-uploader" accept="image/*" style="display:none;" onchange="handleFileUpload(event)">
+                                <button class="btn btn-hero-primary" onclick="document.getElementById('file-uploader').click()" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 20px;background:linear-gradient(135deg,#3ddc84,#00d4ff);color:#030a06;font-weight:800;font-size:0.9rem;box-shadow:0 4px 18px rgba(61,220,132,0.4);border-radius:12px;border:none;cursor:pointer;">
+                                    <span style="font-size:1.1rem;">📤</span> Upload Photo <span style="font-size:0.78rem;font-weight:600;opacity:0.75;">– Choose from device</span>
+                                </button>
+                                <button class="btn btn-secondary" id="btn-retake" onclick="resetScannerView()" style="display:none;align-items:center;gap:6px;padding:12px 16px;border-radius:12px;">
+                                    <span>↻</span> Reset
+                                </button>
+                            </div>
 
-                    <!-- AI Upcycling Suggestions -->
-                    <div style="margin-bottom:16px; padding:12px 14px; background:rgba(82,224,101,0.04); border:1px solid rgba(82,224,101,0.15); border-radius:12px;">
-                        <span style="font-size:0.72rem; font-weight:700; color:#52e065; text-transform:uppercase; letter-spacing:0.06em;">💡 AI Upcycling &amp; Reuse Ideas:</span>
-                        <ul id="res-reuse" style="margin:6px 0 0 18px; font-size:0.78rem; color:#94a3b8; line-height:1.5;">
-                            <li>Cut in half to plant seeds.</li>
-                        </ul>
-                    </div>
-
-                    <!-- Rewards Pill Banner -->
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 16px; background:linear-gradient(135deg,rgba(82,224,101,0.15),rgba(0,212,255,0.1)); border:1px solid rgba(82,224,101,0.3); border-radius:12px; margin-bottom:16px;">
-                        <div>
-                            <span style="font-size:0.7rem; color:#94a3b8; text-transform:uppercase;">Reward Earned</span>
-                            <div id="res-reward" style="font-size:1.1rem; font-weight:800; color:#c7fe73; font-family:var(--font-number);">+50 Eco Coins &amp; XP</div>
-                        </div>
-                        <span style="font-size:0.72rem; color:#52e065; font-weight:700;">Saved to Profile &amp; Eco Passport ✓</span>
-                    </div>
-
-                    <!-- Voice Output Audio Controls Bar -->
-                    <div style="padding:12px 16px; background:rgba(3,12,6,0.8); border:1px solid rgba(82,224,101,0.2); border-radius:12px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="font-size:1.1rem;">🔊</span>
-                            <div>
-                                <div style="font-size:0.75rem; font-weight:700; color:#fff;">AI Voice Reader</div>
-                                <div id="voice-player-status" style="font-size:0.65rem; color:#64748b;">Click Play to hear AI scan summary aloud</div>
+                            <!-- Supported Items Tags -->
+                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:0.72rem;color:#64748b;">
+                                <span style="font-size:0.7rem;font-weight:600;color:#64748b;margin-right:4px;">Supported items</span>
+                                <span style="background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#52e065;padding:2px 9px;border-radius:12px;">🧴 PET Bottles</span>
+                                <span style="background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#52e065;padding:2px 9px;border-radius:12px;">🥫 Cans</span>
+                                <span style="background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#52e065;padding:2px 9px;border-radius:12px;">📱 E-Waste</span>
+                                <span style="background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#52e065;padding:2px 9px;border-radius:12px;">🌿 Organic Scraps</span>
+                                <span style="background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#52e065;padding:2px 9px;border-radius:12px;">🔁 Reusable Items</span>
+                                <span style="background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#52e065;padding:2px 9px;border-radius:12px;">📄 Paper</span>
+                                <span style="background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#52e065;padding:2px 9px;border-radius:12px;">🫙 Glass</span>
+                                <span style="color:#52e065;padding:2px 4px;font-weight:600;">⌄ More</span>
                             </div>
                         </div>
-                        <div style="display:flex; gap:6px;">
-                            <button class="btn btn-secondary" onclick="playVoiceReport()" style="padding:4px 10px; font-size:0.72rem;">▶ Play</button>
-                            <button class="btn btn-secondary" onclick="pauseVoiceReport()" style="padding:4px 10px; font-size:0.72rem;">⏸ Pause</button>
-                            <button class="btn btn-secondary" onclick="resumeVoiceReport()" style="padding:4px 10px; font-size:0.72rem;">▶ Resume</button>
-                            <button class="btn btn-secondary" onclick="stopVoiceReport()" style="padding:4px 10px; font-size:0.72rem;">■ Stop</button>
-                            <button class="btn btn-secondary" onclick="replayVoiceReport()" style="padding:4px 10px; font-size:0.72rem;">↺ Replay</button>
+
+                        <!-- Analysis Results Card (hidden until scan) -->
+                        <div class="card" id="card-scan-results" style="display:none;margin-top:18px;border:1px solid rgba(82,224,101,0.3);background:rgba(10,28,17,0.9);padding:20px 24px;border-radius:16px;scroll-margin-top:85px;">
+                            <!-- Non-Waste Banner -->
+                            <div id="scan-nonwaste-box" style="display:none;padding:14px 18px;background:rgba(255,100,100,0.12);border:1px solid rgba(255,100,100,0.35);border-radius:12px;margin-bottom:16px;color:#ff6b6b;font-size:0.85rem;">
+                                <strong style="display:block;margin-bottom:4px;font-size:0.95rem;">🚫 Non-Waste Image Detected</strong>
+                                <span id="scan-nonwaste-reason">This doesn't appear to be a waste item. Please upload an image of an item you want to dispose of.</span>
+                            </div>
+
+                            <!-- Result Header -->
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+                                <div style="flex:1;min-width:260px;">
+                                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
+                                        <h3 id="res-material" style="margin:0;font-size:1.4rem;font-weight:800;color:#fff;line-height:1.35;">Plastic Bottle</h3>
+                                        <span id="res-category-badge" style="background:rgba(82,224,101,0.15);border:1px solid rgba(82,224,101,0.4);color:#52e065;padding:3px 12px;border-radius:12px;font-size:0.75rem;font-weight:700;">Plastic</span>
+                                        <span id="res-bin-badge" style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;padding:3px 12px;border-radius:12px;font-size:0.75rem;font-weight:700;">🗑️ Dry Waste / Recycling</span>
+                                    </div>
+                                    <p style="margin:0;font-size:0.8rem;color:#94a3b8;line-height:1.4;" id="res-explanation">PET (#1) material identified via Vision AI pattern analysis.</p>
+                                </div>
+                                <div style="text-align:right;flex-shrink:0;">
+                                    <div style="font-size:0.68rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">AI Confidence</div>
+                                    <div id="res-confidence-text" style="font-size:1.2rem;font-weight:800;color:#52e065;font-family:var(--font-number);">96%</div>
+                                </div>
+                            </div>
+
+                            <!-- Uncertainty Alert -->
+                            <div id="scan-uncertainty-box" style="display:none;padding:12px 16px;background:rgba(249,168,38,0.1);border:1px solid rgba(249,168,38,0.3);border-radius:12px;margin-bottom:14px;color:#f9a826;font-size:0.78rem;">
+                                <strong style="display:block;margin-bottom:4px;font-size:0.85rem;" id="uncertainty-title">⚠️ Low AI Confidence Notice</strong>
+                                <span id="uncertainty-desc">Unable to confidently identify — please upload a clearer, well-lit image.</span>
+                                <ul style="margin:6px 0 0 18px;padding:0;color:#94a3b8;font-size:0.73rem;">
+                                    <li>Move closer to the object</li>
+                                    <li>Improve lighting and remove shadows</li>
+                                    <li>Keep the waste item centered in frame</li>
+                                    <li>Avoid blurry photo captures</li>
+                                </ul>
+                            </div>
+
+                            <!-- Multiple Objects -->
+                            <div id="scan-multiobjects-box" style="display:none;margin-bottom:16px;padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(82,224,101,0.2);border-radius:12px;">
+                                <span style="font-size:0.75rem;font-weight:800;color:#52e065;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:8px;">📦 Multiple Waste Objects Detected:</span>
+                                <div id="scan-multiobjects-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+                            </div>
+
+                            <!-- Metrics Grid -->
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                                <div style="padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;">
+                                    <div style="font-size:0.65rem;text-transform:uppercase;color:#64748b;letter-spacing:0.06em;margin-bottom:4px;">♻️ Recommended Disposal</div>
+                                    <div id="res-disposal" style="font-size:0.8rem;color:#fff;font-weight:600;line-height:1.4;">Empty, rinse and place in plastic recycling bin.</div>
+                                </div>
+                                <div style="padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;">
+                                    <div style="font-size:0.65rem;text-transform:uppercase;color:#64748b;letter-spacing:0.06em;margin-bottom:4px;">🌱 Eco-Friendly Alternative</div>
+                                    <div id="res-alternative" style="font-size:0.8rem;color:#52e065;font-weight:600;line-height:1.4;">Switch to a reusable stainless steel water bottle.</div>
+                                </div>
+                                <div style="padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;">
+                                    <div style="font-size:0.65rem;text-transform:uppercase;color:#64748b;letter-spacing:0.06em;margin-bottom:4px;">⏳ Decomposition Time</div>
+                                    <div id="res-decomp" style="font-size:0.85rem;color:#fff;font-weight:700;">450 Years</div>
+                                </div>
+                                <div style="padding:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;">
+                                    <div style="font-size:0.65rem;text-transform:uppercase;color:#64748b;letter-spacing:0.06em;margin-bottom:4px;">🌍 CO₂ Impact Avoided</div>
+                                    <div id="res-co2" style="font-size:0.85rem;color:#52e065;font-weight:700;">-0.083 kg CO₂</div>
+                                </div>
+                            </div>
+
+                            <!-- Upcycling Ideas -->
+                            <div style="margin-bottom:16px;padding:12px 14px;background:rgba(82,224,101,0.04);border:1px solid rgba(82,224,101,0.15);border-radius:12px;">
+                                <span style="font-size:0.72rem;font-weight:700;color:#52e065;text-transform:uppercase;letter-spacing:0.06em;">💡 AI Upcycling &amp; Reuse Ideas:</span>
+                                <ul id="res-reuse" style="margin:6px 0 0 18px;font-size:0.78rem;color:#94a3b8;line-height:1.5;">
+                                    <li>Cut in half to plant seeds.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Reward Banner -->
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:linear-gradient(135deg,rgba(82,224,101,0.15),rgba(0,212,255,0.1));border:1px solid rgba(82,224,101,0.3);border-radius:12px;margin-bottom:16px;">
+                                <div>
+                                    <span style="font-size:0.7rem;color:#94a3b8;text-transform:uppercase;">Reward Earned</span>
+                                    <div id="res-reward" style="font-size:1.1rem;font-weight:800;color:#c7fe73;font-family:var(--font-number);">+50 Eco Coins &amp; XP</div>
+                                </div>
+                                <span style="font-size:0.72rem;color:#52e065;font-weight:700;">Saved to Profile &amp; Eco Passport ✓</span>
+                            </div>
+
+                            <!-- Scan Again -->
+                            <div style="margin-bottom:16px;text-align:center;">
+                                <button class="btn btn-hero-primary" id="btn-scan-again" onclick="resetScannerView()" style="width:100%;padding:12px;font-size:0.95rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#3ddc84,#00d4ff);color:#030a06;border:none;box-shadow:0 4px 18px rgba(61,220,132,0.35);border-radius:12px;cursor:pointer;">
+                                    <span>📸</span> Scan Another Image
+                                </button>
+                            </div>
+
+                            <!-- Voice Output -->
+                            <div style="padding:12px 16px;background:rgba(3,12,6,0.8);border:1px solid rgba(82,224,101,0.2);border-radius:12px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <span style="font-size:1.1rem;">🔊</span>
+                                    <div>
+                                        <div style="font-size:0.75rem;font-weight:700;color:#fff;">AI Voice Reader</div>
+                                        <div id="voice-player-status" style="font-size:0.65rem;color:#64748b;">Click Play to hear AI scan summary aloud</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:6px;">
+                                    <button class="btn btn-secondary" onclick="playVoiceReport()" style="padding:4px 10px;font-size:0.72rem;">▶ Play</button>
+                                    <button class="btn btn-secondary" onclick="pauseVoiceReport()" style="padding:4px 10px;font-size:0.72rem;">⏸ Pause</button>
+                                    <button class="btn btn-secondary" onclick="resumeVoiceReport()" style="padding:4px 10px;font-size:0.72rem;">▶ Resume</button>
+                                    <button class="btn btn-secondary" onclick="stopVoiceReport()" style="padding:4px 10px;font-size:0.72rem;">■ Stop</button>
+                                    <button class="btn btn-secondary" onclick="replayVoiceReport()" style="padding:4px 10px;font-size:0.72rem;">↺ Replay</button>
+                                </div>
+                            </div>
+
+                            <!-- Follow-up Questions -->
+                            <div style="padding:12px 16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;">
+                                <div style="font-size:0.68rem;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:8px;">💬 Ask AI Follow-Up Question About This Scan:</div>
+                                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                    <button onclick="askScanQuestion('What is this item?')" style="background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#52e065;padding:5px 12px;border-radius:16px;font-size:0.72rem;cursor:pointer;font-weight:600;">"What is this?"</button>
+                                    <button onclick="askScanQuestion('Is this recyclable?')" style="background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#52e065;padding:5px 12px;border-radius:16px;font-size:0.72rem;cursor:pointer;font-weight:600;">"Is this recyclable?"</button>
+                                    <button onclick="askScanQuestion('How should I dispose of this?')" style="background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#52e065;padding:5px 12px;border-radius:16px;font-size:0.72rem;cursor:pointer;font-weight:600;">"How to dispose?"</button>
+                                    <button onclick="askScanQuestion('What eco alternative can I use?')" style="background:rgba(82,224,101,0.08);border:1px solid rgba(82,224,101,0.2);color:#52e065;padding:5px 12px;border-radius:16px;font-size:0.72rem;cursor:pointer;font-weight:600;">"Eco alternative?"</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Scan History -->
+                        <div class="card" id="card-scan-history" style="margin-top:18px;border:1px solid rgba(82,224,101,0.2);background:rgba(10,28,17,0.85);padding:18px 20px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                                <h3 style="margin:0;font-size:1rem;font-weight:800;color:#fff;display:flex;align-items:center;gap:6px;">🕐 Recent Scan History</h3>
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    <span style="font-size:0.7rem;color:#64748b;display:flex;align-items:center;gap:4px;">☁️ Saved to Firestore</span>
+                                    <button onclick="loadScanHistory()" style="background:rgba(82,224,101,0.1);border:1px solid rgba(82,224,101,0.25);color:#52e065;padding:4px 12px;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">View All →</button>
+                                </div>
+                            </div>
+                            <div id="scan-history-list" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;scrollbar-color:rgba(82,224,101,0.2) transparent;">
+                                <div style="font-size:0.75rem;color:#64748b;text-align:center;padding:20px;min-width:200px;">No scan history recorded yet.</div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Contextual Follow-up Voice Questions -->
-                    <div style="padding:12px 16px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:12px;">
-                        <div style="font-size:0.68rem; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:8px;">
-                            💬 Ask AI Follow-Up Question About This Scan:
+                    <!-- RIGHT SIDEBAR -->
+                    <div style="flex: 1 1 280px; display:flex; flex-direction:column; gap:14px; min-width: 250px;">
+
+                        <!-- How It Works Card -->
+                        <div class="card" style="border:1px solid rgba(82,224,101,0.2);background:rgba(10,28,17,0.88);padding:16px 18px;">
+                            <h4 style="margin:0 0 14px;font-size:0.88rem;font-weight:800;color:#fff;display:flex;align-items:center;gap:6px;">🌿 How it works</h4>
+                            <div style="display:flex;flex-direction:column;gap:12px;">
+                                <div style="display:flex;align-items:flex-start;gap:10px;">
+                                    <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#3ddc84,#00d4ff);color:#030a06;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+                                    <div>
+                                        <div style="font-size:0.8rem;font-weight:700;color:#fff;margin-bottom:2px;">Upload or scan</div>
+                                        <div style="font-size:0.72rem;color:#94a3b8;line-height:1.4;">Upload a photo of the waste item</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;align-items:flex-start;gap:10px;">
+                                    <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#3ddc84,#00d4ff);color:#030a06;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+                                    <div>
+                                        <div style="font-size:0.8rem;font-weight:700;color:#fff;margin-bottom:2px;">AI analyzes</div>
+                                        <div style="font-size:0.72rem;color:#94a3b8;line-height:1.4;">Our AI identifies the object and its material</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;align-items:flex-start;gap:10px;">
+                                    <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#3ddc84,#00d4ff);color:#030a06;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+                                    <div>
+                                        <div style="font-size:0.8rem;font-weight:700;color:#fff;margin-bottom:2px;">Get results</div>
+                                        <div style="font-size:0.72rem;color:#94a3b8;line-height:1.4;">See category, disposal tips &amp; earn Eco Coins</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                            <button onclick="askScanQuestion('What is this item?')" style="background:rgba(82,224,101,0.08); border:1px solid rgba(82,224,101,0.2); color:#52e065; padding:5px 12px; border-radius:16px; font-size:0.72rem; cursor:pointer; font-weight:600;">"What is this?"</button>
-                            <button onclick="askScanQuestion('Is this recyclable?')" style="background:rgba(82,224,101,0.08); border:1px solid rgba(82,224,101,0.2); color:#52e065; padding:5px 12px; border-radius:16px; font-size:0.72rem; cursor:pointer; font-weight:600;">"Is this recyclable?"</button>
-                            <button onclick="askScanQuestion('How should I dispose of this?')" style="background:rgba(82,224,101,0.08); border:1px solid rgba(82,224,101,0.2); color:#52e065; padding:5px 12px; border-radius:16px; font-size:0.72rem; cursor:pointer; font-weight:600;">"How should I dispose of this?"</button>
-                            <button onclick="askScanQuestion('What eco alternative can I use?')" style="background:rgba(82,224,101,0.08); border:1px solid rgba(82,224,101,0.2); color:#52e065; padding:5px 12px; border-radius:16px; font-size:0.72rem; cursor:pointer; font-weight:600;">"What eco alternative can I use?"</button>
-                            <button onclick="askScanQuestion('How many eco points do I get?')" style="background:rgba(82,224,101,0.08); border:1px solid rgba(82,224,101,0.2); color:#52e065; padding:5px 12px; border-radius:16px; font-size:0.72rem; cursor:pointer; font-weight:600;">"How many points do I get?"</button>
+
+                        <!-- Today's Impact Card -->
+                        <div class="card" style="border:1px solid rgba(82,224,101,0.2);background:rgba(10,28,17,0.88);padding:16px 18px;">
+                            <h4 style="margin:0 0 14px;font-size:0.88rem;font-weight:800;color:#fff;display:flex;align-items:center;gap:6px;">🌿 Today's Impact</h4>
+
+                            <!-- Circular progress ring -->
+                            <div style="display:flex;justify-content:center;margin-bottom:14px;">
+                                <div style="position:relative;width:110px;height:110px;">
+                                    <svg width="110" height="110" viewBox="0 0 110 110" style="transform:rotate(-90deg);">
+                                        <circle cx="55" cy="55" r="44" fill="none" stroke="rgba(82,224,101,0.12)" stroke-width="10"/>
+                                        <circle id="impact-ring" cx="55" cy="55" r="44" fill="none" stroke="url(#impactGrad)" stroke-width="10"
+                                            stroke-dasharray="276.46" stroke-dashoffset="83" stroke-linecap="round"/>
+                                        <defs>
+                                            <linearGradient id="impactGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" stop-color="#3ddc84"/>
+                                                <stop offset="100%" stop-color="#00d4ff"/>
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                        <div id="impact-pct" style="font-size:1.4rem;font-weight:800;color:#fff;font-family:var(--font-number);line-height:1;">72%</div>
+                                        <div style="font-size:0.65rem;color:#52e065;font-weight:700;">Great Job!</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p style="font-size:0.73rem;color:#94a3b8;text-align:center;margin:0 0 14px;">You're making a difference!</p>
+
+                            <!-- Impact stats -->
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <span style="font-size:0.75rem;color:#94a3b8;display:flex;align-items:center;gap:5px;">♻️ Scans Today</span>
+                                    <span id="today-scans" style="font-size:0.88rem;font-weight:800;color:#52e065;font-family:var(--font-number);">0</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <span style="font-size:0.75rem;color:#94a3b8;display:flex;align-items:center;gap:5px;">🌍 CO₂ Saved</span>
+                                    <span id="today-co2" style="font-size:0.88rem;font-weight:800;color:#52e065;font-family:var(--font-number);">0.0 kg</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <span style="font-size:0.75rem;color:#94a3b8;display:flex;align-items:center;gap:5px;">🪙 Eco Coins Earned</span>
+                                    <span id="today-coins" style="font-size:0.88rem;font-weight:800;color:#c7fe73;font-family:var(--font-number);">+0 🪙</span>
+                                </div>
+                            </div>
                         </div>
+
                     </div>
                 </div>
-
-                <!-- Recent Scan History Section -->
-                <div class="card" id="card-scan-history" style="margin-top: 20px; border:1px solid rgba(82,224,101,0.2); background:rgba(10,28,17,0.85);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                        <h3 style="margin:0; font-size:1.05rem; font-weight:800; color:#fff;">📜 Recent Scan History</h3>
-                        <span style="font-size:0.7rem; color:#64748b;">Saved to Firestore</span>
-                    </div>
-                    <div id="scan-history-list" style="display:flex; flex-direction:column; gap:8px;">
-                        <div style="font-size:0.75rem; color:#64748b; text-align:center; padding:12px;">No scan history recorded yet.</div>
-                    </div>
-                </div>
-
             </div>
 
 

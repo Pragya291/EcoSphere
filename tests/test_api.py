@@ -120,29 +120,108 @@ def test_timeline_forecast(client):
     assert 'milestones' in data
 
 def test_scan_waste(client):
-    """Test scanning image files."""
-    response = client.post('/api/scan', json={
-        'user_id': 'test_suite_user',
-        'image': 'data:image/jpeg;base64,dGVzdGltYWdl',  # dummy base64
-        'filename': 'plastic_bottle.jpg'
-      })
-    assert response.status_code == 200
-    data = json.loads(response.data)
-    assert data['success'] is True
-    assert data['scan']['material'] == "PET Plastic Bottle"
+    """Test scanning image files via FormData multipart upload."""
+    import io
+    from unittest.mock import patch
+    from app.services import openai_service as svc
+    from PIL import Image as PILImage
 
-def test_scan_waste_unknown_filename(client):
-    """Test scanning with a generic webcam filename does not default to plastic bottle."""
-    response = client.post('/api/scan', json={
-        'user_id': 'test_suite_user',
-        'image': 'data:image/jpeg;base64,dGVzdGltYWdl',
-        'filename': 'cam_shot.jpg'
-      })
+    buf = io.BytesIO()
+    PILImage.new("RGB", (10, 10), color=(200, 100, 50)).save(buf, format="JPEG")
+    buf.seek(0)
+
+    mock_result = {
+        "is_waste": True, "category": "Plastic", "item": "plastic bottle",
+        "material": "plastic bottle", "confidence": 0.94,
+        "disposal_method": "Recyclable", "bin": "Dry Waste / Recycling",
+        "reason": "Clear plastic bottle.", "environmental_tip": "Rinse before recycling.",
+        "multiple_objects": [], "is_uncertain": False, "recyclable": True,
+        "reward_earned": 50, "eco_alternative": "Use reusable bottle.",
+        "explanation": "Clear plastic bottle.", "environmental_impact": "Low",
+        "reuse_ideas": [], "repair_ideas": [], "decomposition_time": "450 years",
+        "co2_impact": -0.08, "disposal_recommendation": "Rinse and recycle.",
+    }
+
+    with patch("app.routes.api.scan.analyze_waste_image", return_value=mock_result):
+        response = client.post(
+            '/api/scan',
+            data={
+                "image": (buf, "plastic_bottle.jpg", "image/jpeg"),
+                "user_id": "test_suite_user",
+                "scan_id": "test_scan_001",
+            },
+            content_type="multipart/form-data"
+        )
+
     assert response.status_code == 200
     data = json.loads(response.data)
     assert data['success'] is True
-    assert data['scan']['material'] == "Unknown Waste Item"
-    assert data['scan']['is_uncertain'] is True
+    assert data['scan_id'] == 'test_scan_001'
+    assert 'item' in data['scan']
+    assert 'category' in data['scan']
+    assert 'bin' in data['scan']
+    assert 'confidence' in data['scan']
+
+
+def test_scan_waste_structured_schema(client):
+    """Test that scan route returns all required structured vision classification fields."""
+    import io
+    from unittest.mock import patch
+    from app.services import openai_service as svc
+    from PIL import Image as PILImage
+
+    buf = io.BytesIO()
+    PILImage.new("RGB", (10, 10), color=(180, 180, 180)).save(buf, format="JPEG")
+    buf.seek(0)
+
+    mock_result = {
+        "is_waste": True, "category": "Metal", "item": "aluminum can",
+        "material": "aluminum can", "confidence": 0.91,
+        "disposal_method": "Recyclable", "bin": "Dry Waste / Recycling",
+        "reason": "Aluminum can visible.", "environmental_tip": "Crush and recycle.",
+        "multiple_objects": [], "is_uncertain": False, "recyclable": True,
+        "reward_earned": 50, "eco_alternative": "Refillable bottle.",
+        "explanation": "Aluminum can visible.", "environmental_impact": "Low",
+        "reuse_ideas": [], "repair_ideas": [], "decomposition_time": "80-200 years",
+        "co2_impact": -0.1, "disposal_recommendation": "Crush and put in recycle bin.",
+    }
+
+    with patch("app.routes.api.scan.analyze_waste_image", return_value=mock_result):
+        response = client.post(
+            '/api/scan',
+            data={
+                "image": (buf, "aluminum_can.jpg", "image/jpeg"),
+                "user_id": "test_suite_user",
+                "scan_id": "test_scan_003",
+            },
+            content_type="multipart/form-data"
+        )
+
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['success'] is True
+    scan = data['scan']
+    assert 'is_waste' in scan
+    assert 'category' in scan
+    assert 'item' in scan
+    assert 'confidence' in scan
+    assert 'disposal_method' in scan
+    assert 'bin' in scan
+    assert 'reason' in scan
+    assert 'environmental_tip' in scan
+    assert 'multiple_objects' in scan
+
+def test_scan_empty_image_validation(client):
+    """Test that empty or missing image payload returns 400 error."""
+    response = client.post('/api/scan', json={
+        'user_id': 'test_suite_user',
+        'scan_id': 'test_scan_004',
+        'filename': 'empty.jpg'
+    })
+    assert response.status_code == 400
+    data = json.loads(response.data)
+    assert data['success'] is False
+    assert 'error' in data
 
 def test_scan_receipt(client):
     """Test scanning a grocery receipt."""
@@ -158,4 +237,3 @@ def test_scan_receipt(client):
     assert 'items' in data['result']
     assert len(data['result']['items']) > 0
     assert 'total_carbon' in data['result']
-
