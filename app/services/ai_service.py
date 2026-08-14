@@ -1,6 +1,9 @@
 import os
 import io
+import json
+import base64
 import random
+import requests
 from PIL import Image, ImageOps
 import torch
 
@@ -31,8 +34,7 @@ def load_model():
         _model_available = False
     return _classifier
 
-# Load at startup/import
-load_model()
+# Model loaded lazily on first scan request
 
 # Category mappings from yangy50/garbage-classification labels to EcoSphere canonical categories:
 # Model output labels: 'paper', 'cardboard', 'biological', 'metal', 'plastic', 'green-glass', 'brown-glass', 'white-glass', 'clothes', 'shoes', 'batteries', 'trash'
@@ -246,10 +248,132 @@ def analyze_waste_image(image_bytes=None, filename="", mime_type="image/jpeg"):
             "reason": "The local scanner model failed to analyze the image."
         }
 
+def call_realtime_llm(chat_history, user_message, latest_scan=None):
+    """
+    Calls a real-time LLM provider (Groq / Grok, OpenAI, or Gemini) if an API key is configured.
+    Returns the real-time AI response string, or None if unavailable.
+    """
+    grok_key = os.getenv("GROK_API_KEY") or os.getenv("GROQ_API_KEY")
+    openai_key = os.getenv("OPENAI_API_KEY")
+    gemini_key = os.getenv("GEMINI_API_KEY")
+
+    if not (grok_key or openai_key or gemini_key):
+        return None
+
+    import requests
+
+    system_prompt = (
+        "You are EcoSphere AI, an intelligent, inspiring, and friendly real-time Sustainability Coach & AI Mentor. "
+        "Your mission is to help users adopt eco-friendly habits, reduce carbon footprints, recycle correctly, save energy and water, "
+        "and answer questions about green living. Keep responses encouraging, well-formatted, clear, and actionable. "
+        "Use bullet points or short paragraphs where appropriate."
+    )
+
+    messages = [{"role": "system", "content": system_prompt}]
+
+    # Include scan context if present
+    if latest_scan and isinstance(latest_scan, dict) and latest_scan.get("material"):
+        scan_ctx = (
+            f"[Latest Scan Context]: The user recently scanned a {latest_scan.get('material')} "
+            f"(Category: {latest_scan.get('category')}, Bin: {latest_scan.get('bin', 'Recycling')}, "
+            f"Recyclable: {latest_scan.get('recyclable', True)}, CO2 Impact: {latest_scan.get('co2_impact', 0)} kg CO2). "
+            f"Disposal advice: {latest_scan.get('disposal_recommendation', '')}."
+        )
+        messages.append({"role": "system", "content": scan_ctx})
+
+    # Convert history into LLM messages format
+    if chat_history and isinstance(chat_history, list):
+        for h in chat_history[-6:]:
+            sender = h.get("sender") or h.get("role")
+            text = h.get("text") or h.get("content")
+            if text and text != "Hello! I am your AI Eco Coach. Ask me any question or ask about your latest scan!":
+                role = "user" if sender == "user" else "assistant"
+                messages.append({"role": role, "content": text})
+
+    # Ensure current user message is at the end
+    if not messages or messages[-1].get("content") != user_message:
+        messages.append({"role": "user", "content": user_message})
+
+    # 1. Groq / Grok API (OpenAI compatible)
+    if grok_key:
+        try:
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            headers = {"Authorization": f"Bearer {grok_key}", "Content-Type": "application/json"}
+            payload = {
+                "model": "llama-3.3-70b-versatile",
+                "messages": messages,
+                "max_tokens": 500,
+                "temperature": 0.7
+            }
+            res = requests.post(url, headers=headers, json=payload, timeout=12)
+            if res.status_code == 200:
+                resp_json = res.json()
+                content = resp_json["choices"][0]["message"]["content"].strip()
+                if content:
+                    print(f"[Real-Time AI Coach] Groq LLM response generated successfully ({len(content)} chars).")
+                    return content
+            else:
+                print(f"[Real-Time AI Coach] Groq status {res.status_code}: {res.text}")
+        except Exception as e:
+            print(f"[Real-Time AI Coach] Groq call error: {e}")
+
+    # 2. OpenAI API
+    if openai_key:
+        try:
+            url = "https://api.openai.com/v1/chat/completions"
+            headers = {"Authorization": f"Bearer {openai_key}", "Content-Type": "application/json"}
+            payload = {
+                "model": "gpt-3.5-turbo",
+                "messages": messages,
+                "max_tokens": 500,
+                "temperature": 0.7
+            }
+            res = requests.post(url, headers=headers, json=payload, timeout=12)
+            if res.status_code == 200:
+                resp_json = res.json()
+                content = resp_json["choices"][0]["message"]["content"].strip()
+                if content:
+                    print(f"[Real-Time AI Coach] OpenAI LLM response generated successfully ({len(content)} chars).")
+                    return content
+        except Exception as e:
+            print(f"[Real-Time AI Coach] OpenAI call error: {e}")
+
+    # 3. Gemini API
+    if gemini_key:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+            contents = []
+            for msg in messages:
+                if msg["role"] == "system":
+                    continue
+                role = "user" if msg["role"] == "user" else "model"
+                contents.append({"role": role, "parts": [{"text": msg["content"]}]})
+            payload = {
+                "system_instruction": {"parts": [{"text": system_prompt}]},
+                "contents": contents
+            }
+            res = requests.post(url, json=payload, timeout=12)
+            if res.status_code == 200:
+                resp_json = res.json()
+                content = resp_json["candidates"][0]["content"]["parts"][0]["text"].strip()
+                if content:
+                    print(f"[Real-Time AI Coach] Gemini LLM response generated successfully ({len(content)} chars).")
+                    return content
+        except Exception as e:
+            print(f"[Real-Time AI Coach] Gemini call error: {e}")
+
+    return None
+
 def get_coach_response(chat_history, user_message, latest_scan=None):
     """
-    Deterministic offline sustainability coach.
+    Real-time AI chatbot with fallback to deterministic offline rules.
     """
+    # 1. Real-time LLM API execution if key is present
+    realtime_reply = call_realtime_llm(chat_history, user_message, latest_scan=latest_scan)
+    if realtime_reply:
+        return realtime_reply
+
+    # 2. Offline / Deterministic fallback logic
     msg = user_message.lower()
 
     if latest_scan and isinstance(latest_scan, dict) and latest_scan.get("material"):

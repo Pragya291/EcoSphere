@@ -14,6 +14,7 @@ class Config:
     FIREBASE_APP_ID = os.getenv('FIREBASE_APP_ID', '')
     FIREBASE_MEASUREMENT_ID = os.getenv('FIREBASE_MEASUREMENT_ID', '')
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-    GROK_API_KEY = os.getenv('GROK_API_KEY')
+    GROK_API_KEY = os.getenv('GROK_API_KEY') or os.getenv('GROQ_API_KEY')
+    GROQ_API_KEY = os.getenv('GROQ_API_KEY') or os.getenv('GROK_API_KEY')
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 

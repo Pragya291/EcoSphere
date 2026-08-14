@@ -4,18 +4,24 @@ EcoSphere is a gamified web application aimed at encouraging eco-friendly habits
 
 ## Features
 
-- **Carbon Calculator**: Calculate and track your daily carbon footprint.
-- **Gamification**: Earn points and improve your score by completing eco-friendly tasks and challenges.
-- **AI Mentor**: Get personalized advice and answers to your sustainability questions powered by OpenAI.
-- **Eco Passport & Timeline**: Track your progress and view a timeline of your sustainable activities.
+- **Carbon Calculator**: Calculate and track your daily carbon footprint based on various activities (electricity usage, transportation, food choices, waste management, etc.).
+- **Waste Image Analysis**: Upload waste images to automatically classify and identify recyclable materials using AI-powered image recognition.
+- **Gamification System**: Earn rewards and track your Green Score through progressive ecosystem phases (Seed → Plant → Tree → Forest → River → Wildlife → Nature Reserve → Smart Eco City).
+- **AI Mentor**: Get personalized advice and answers to your sustainability questions powered by OpenAI GPT.
+- **Eco Passport & Timeline**: Track your progress and view a timeline of your sustainable activities and achievements.
 - **Sustainability Tips**: Discover new ways to reduce your environmental impact.
+- **Score & Rewards Tracking**: Accumulate points through eco-friendly actions and monitor your environmental impact reduction.
 
 ## Tech Stack
 
 - **Backend**: Python, Flask
-- **Database / Authentication**: Firebase
-- **AI Integration**: OpenAI API
+- **Frontend**: HTML5, CSS3, JavaScript
+- **Database / Authentication**: Firebase Realtime Database & Firebase Auth
+- **AI Integration**: Grok API, OpenAI API (GPT models), Google Gemini API & Hugging Face Transformers
+- **Machine Learning**: PyTorch, Transformers (for waste image classification)
+- **Image Processing**: Pillow (PIL)
 - **Testing**: Pytest
+- **Deployment**: Gunicorn, Vercel
 
 ## Setup and Installation
 
@@ -52,7 +58,9 @@ EcoSphere is a gamified web application aimed at encouraging eco-friendly habits
    ```env
    SECRET_KEY=your-secret-key
    FIREBASE_PROJECT_ID=your-firebase-project-id
+   GROK_API_KEY=your-grok-api-key
    OPENAI_API_KEY=your-openai-api-key
+   GEMINI_API_KEY=your-google-gemini-api-key
    FIREBASE_CREDENTIALS_PATH=serviceAccountKey.json
    ```
 
